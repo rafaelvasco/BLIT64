@@ -134,7 +134,7 @@ namespace BLIT64_Editor
         {
             _color_cells = new ColorCell[_current_palette.Count];
 
-            var cell_size = ((Width - ((HorizontalCells + 1) * CellSpacing)) / (float)HorizontalCells);
+            var cell_size = ((_area.W - ((HorizontalCells + 1) * CellSpacing)) / (float)HorizontalCells);
 
             _cell_size = Calc.FastCeilToInt(cell_size);
 

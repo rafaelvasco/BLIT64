@@ -4,7 +4,7 @@ namespace BLIT64_Editor
 {
     internal class PixmapEditor : PixmapDisplayComponent
     {
-        private const int CURSOR_BORDER_SIZE = 3;
+        private const int CURSOR_BORDER_SIZE = 2;
         private const int PANEL_BORDER_SIZE = 3;
 
         public static readonly int Size = Editor.TileSize * 16;
@@ -217,8 +217,6 @@ namespace BLIT64_Editor
 
             var cursor_x = (int)(_area.X + Calc.Snap(_mouse_x, _brush_size * final_scale_x));
             var cursor_y = (int)(_area.Y + Calc.Snap(_mouse_y, _brush_size * final_scale_y));
-
-            
 
             if (_draw_cursor)
             {

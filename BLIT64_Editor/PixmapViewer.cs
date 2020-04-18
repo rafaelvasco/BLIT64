@@ -1,4 +1,5 @@
-﻿using BLIT64;
+﻿using System.IO.Compression;
+using BLIT64;
 
 namespace BLIT64_Editor
 {
@@ -24,6 +25,18 @@ namespace BLIT64_Editor
             _current_source_rect = source_rect;
         }
 
+        public void SetCursorSize(int multiplier)
+        {
+            this._current_source_rect = new Rect(
+                this._current_source_rect.X,
+                this._current_source_rect.Y,
+                Editor.TileSize * multiplier,
+                Editor.TileSize * multiplier
+            );
+
+            ClampSourceRect();
+        }
+
         public override void OnMouseDown(MouseButton button, int x, int y)
         {
             (_last_cursor_x, _last_cursor_y) = GetLocalTransformedMousePos(x, y);
@@ -33,14 +46,43 @@ namespace BLIT64_Editor
             UpdateSourceRectFromMouseCursor(_last_cursor_x, _last_cursor_y);
         }
 
-        private void UpdateSourceRectFromMouseCursor(int src_x, int src_y)
+        private void UpdateSourceRectFromMouseCursor(int cursor_x, int cursor_y)
         {
             _current_source_rect = new Rect(
-                src_x,
-                src_y,
+                cursor_x,
+                cursor_y,
                 _current_source_rect.W,
                 _current_source_rect.H
             );
+
+            ClampSourceRect();
+        }
+
+        private void ClampSourceRect()
+        {
+            var x = _current_source_rect.X;
+            var y = _current_source_rect.Y;
+
+            if (x < 0)
+            {
+                x = 0;
+            }
+            else if (x + _current_source_rect.W > _current_pixmap.Width)
+            {
+                x = _current_pixmap.Width - _current_source_rect.W;
+            }
+
+            if (y < 0)
+            {
+                y = 0;
+            }
+            else if (y + _current_source_rect.H > _current_pixmap.Height)
+            {
+                y = _current_pixmap.Height - _current_source_rect.H;
+            }
+
+            _current_source_rect = new Rect(x, y, _current_source_rect.W, _current_source_rect.H);
+
         }
 
         protected override (int X, int Y) GetLocalTransformedMousePos(int x, int y)
@@ -48,8 +90,8 @@ namespace BLIT64_Editor
             var (transformed_x, transformed_y) = base.GetLocalTransformedMousePos(x, y);
 
             return (
-                (int) Calc.Snap(transformed_x, _current_source_rect.W),
-                (int) Calc.Snap(transformed_y, _current_source_rect.H)
+                (int) Calc.Snap(transformed_x - _current_source_rect.W/2, Editor.TileSize),
+                (int) Calc.Snap(transformed_y - _current_source_rect.H/2, Editor.TileSize)
             );
         }
 

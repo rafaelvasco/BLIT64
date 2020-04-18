@@ -21,6 +21,8 @@ namespace BLIT64_Editor
         private PixmapViewer _pixmap_viewer;
         private ColorPicker _color_picker;
 
+        private Selector _source_rect_size_mult_selector;
+
         public override void Load()
         {
             var game_w = Game.Size.Width;
@@ -67,6 +69,19 @@ namespace BLIT64_Editor
 
             ), _current_palette);
 
+            _source_rect_size_mult_selector = new Selector(Blitter, new Rect(
+                _pixmap_viewer.Area.X + _pixmap_viewer.Area.W/2 - Selector.Width/2,
+                _pixmap_viewer.Area.Y - 25,
+                Selector.Width,
+                0
+                
+            ), new []
+            {
+                1, 2, 4, 8
+            });
+
+            _source_rect_size_mult_selector.OnChange += OnSourceRectSelectorChange;
+
             _pixmap_editor.SetPixmap(_sprite_sheet);
             _pixmap_viewer.SetPixmap(_sprite_sheet);
             _color_picker.SetPalette(_current_palette);
@@ -76,6 +91,7 @@ namespace BLIT64_Editor
             _components.Add(_pixmap_editor);
             _components.Add(_pixmap_viewer);
             _components.Add(_color_picker);
+            _components.Add(_source_rect_size_mult_selector);
 
             Input.AddMouseDownListener(OnMouseDown);
             Input.AddMouseUpListener(OnMouseUp);
@@ -83,6 +99,11 @@ namespace BLIT64_Editor
             Input.AddKeyDownListener(OnKeyDown);
             Input.AddKeyUpListener(OnKeyUp);
 
+        }
+
+        private void OnSourceRectSelectorChange(int value)
+        {
+            _pixmap_viewer.SetCursorSize(value);
         }
 
         private void OnColorPickerColorChange(int color)
