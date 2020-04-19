@@ -3,7 +3,7 @@ using BLIT64;
 
 namespace BLIT64_Editor
 {
-    public class Editor : Scene
+    public class SpriteEditor : Scene
     {
         public static readonly int TileSize = 8;
         public static readonly int PixmapSurfaceSize = TileSize * 16;
@@ -14,13 +14,13 @@ namespace BLIT64_Editor
         private Palette _current_palette;
 
         private Component _hovered_component;
+        private Component _active_component;
 
         private readonly List<Component> _components = new List<Component>();
 
         private PixmapEditor _pixmap_editor;
         private PixmapViewer _pixmap_viewer;
         private ColorPicker _color_picker;
-
         private Selector _source_rect_size_mult_selector;
 
         public override void Load()
@@ -88,6 +88,8 @@ namespace BLIT64_Editor
 
             _color_picker.OnColorChange += OnColorPickerColorChange;
 
+            _pixmap_editor.SetPaintColor(_color_picker.CurrentColor);
+
             _components.Add(_pixmap_editor);
             _components.Add(_pixmap_viewer);
             _components.Add(_color_picker);
@@ -131,41 +133,74 @@ namespace BLIT64_Editor
         {
             var (mouse_x, mouse_y) = Input.MousePos;
 
-            _hovered_component?.OnMouseDown(button, mouse_x - _hovered_component.Area.X, mouse_y - _hovered_component.Area.Y);
+            if (_hovered_component != null)
+            {
+                _hovered_component.OnMouseDown(button, mouse_x - _hovered_component.Area.X, mouse_y - _hovered_component.Area.Y);
+                _active_component = _hovered_component;
+            }
         }
 
         private void OnMouseUp(MouseButton button)
         {
             var (mouse_x, mouse_y) = Input.MousePos;
 
-            _hovered_component?.OnMouseUp(button, mouse_x - _hovered_component.Area.X, mouse_y - _hovered_component.Area.Y);
+            if (_active_component == null)
+            {
+                _hovered_component?.OnMouseUp(button, mouse_x - _hovered_component.Area.X, mouse_y - _hovered_component.Area.Y);
+            }
+            else
+            {
+                _active_component.OnMouseUp(button, mouse_x - _hovered_component.Area.X, mouse_y - _hovered_component.Area.Y);
+                _active_component = null;
+            }
+            
         }
 
         private void OnMouseMove()
         {
             var (mouse_x, mouse_y) = Input.MousePos;
 
-            foreach (var component in _components)
+            if (_active_component == null)
             {
-                if (component.MouseOver(mouse_x, mouse_y))
+                foreach (var component in _components)
                 {
-                    if (_hovered_component != component)
+                    if (component.MouseOver(mouse_x, mouse_y))
                     {
-                        _hovered_component = component;
-                        _hovered_component.OnMouseEnter();
+                        if (_hovered_component != component)
+                        {
+                            _hovered_component = component;
+                            _hovered_component.OnMouseEnter();
+                            _hovered_component.Hovered = true;
+                        }
+                        component.OnMouseMove(mouse_x - component.Area.X, mouse_y - component.Area.Y);
+                        return;
                     }
-                    component.OnMouseMove(mouse_x - component.Area.X, mouse_y - component.Area.Y);
-                    return;
-                }
-                else
-                {
-                    if (_hovered_component == component)
+                    else
                     {
-                        _hovered_component.OnMouseLeave();
-                        _hovered_component = null;
+                        if (_hovered_component == component)
+                        {
+                            _hovered_component.OnMouseLeave();
+                            _hovered_component.Hovered = false;
+                            _hovered_component = null;
+                        }
                     }
                 }
             }
+            else
+            {
+                _active_component.OnMouseMove(mouse_x - _active_component.Area.X, mouse_y - _active_component.Area.Y);
+                if (_active_component.MouseOver(mouse_x, mouse_y) && !_active_component.Hovered)
+                {
+                    _active_component.Hovered = true;
+                    _active_component.OnMouseEnter();
+                }
+                else if(!_active_component.MouseOver(mouse_x, mouse_y) && _active_component.Hovered)
+                {
+                    _active_component.Hovered = false;
+                    _active_component.OnMouseLeave();
+                }
+            }
+            
         }
 
         public override void Update()
@@ -174,22 +209,18 @@ namespace BLIT64_Editor
 
         public override void Draw(Blitter blitter)
         {
-            blitter.Clear(1);
+            blitter.Clear();
 
             blitter.Rect(
                 _main_panel.X,
                 _main_panel.Y,
                 _main_panel.W,
-                _main_panel.H, 31);
+                _main_panel.H, 33);
 
             foreach (var component in _components)
             {
                 component.Draw();
             }
-
-            var (mouse_x, mouse_y) = Input.MousePos;
-
-            blitter.Text(50, 25, $"Mouse Pos: {mouse_x},{mouse_y}; Hovered Color: {_color_picker.CurrentColor}");
         }
     }
 }

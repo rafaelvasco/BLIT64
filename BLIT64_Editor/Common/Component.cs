@@ -6,6 +6,8 @@ namespace BLIT64_Editor
     {
         public ref Rect Area => ref _area;
 
+        internal bool Hovered;
+
         protected Blitter _blitter;
         protected Rect _area;
 

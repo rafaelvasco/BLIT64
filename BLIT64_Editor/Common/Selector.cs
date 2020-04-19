@@ -65,11 +65,6 @@ namespace BLIT64_Editor
             UpdateIndexFromCursor(x);
         }
 
-        public override void OnMouseLeave()
-        {
-            _mouse_down = false;
-        }
-
         private void UpdateGeometry()
         {
             var steps = _options.Length;
@@ -102,11 +97,11 @@ namespace BLIT64_Editor
                     _area.Y + option_rect.Y, 
                     option_rect.W, 
                     option_rect.H,
-                    1
+                    2
                 );
             }
 
-            blitter.Rect(_area.X + 5, _area.Y + _area.H/2, _area.W - 10, 2, 35);
+            blitter.Rect(_area.X + 5, _area.Y + _area.H/2, _area.W - 10, 2);
 
             var current_option_rect = _options[_index].Rect.Deflate(2);
             
@@ -115,7 +110,7 @@ namespace BLIT64_Editor
                 _area.Y + current_option_rect.Y,
                 current_option_rect.W,
                 current_option_rect.H,
-                35
+                2
             );
 
             blitter.RectBorder(

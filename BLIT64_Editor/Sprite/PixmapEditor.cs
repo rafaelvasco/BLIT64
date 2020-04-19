@@ -5,16 +5,16 @@ namespace BLIT64_Editor
     internal class PixmapEditor : PixmapDisplayComponent
     {
         private const int CURSOR_BORDER_SIZE = 2;
-        private const int PANEL_BORDER_SIZE = 3;
+        private const int PANEL_BORDER_SIZE = 2;
 
-        public static readonly int Size = Editor.TileSize * 16;
+        public static readonly int Size = SpriteEditor.TileSize * 16;
 
         private int _last_paint_x;
         private int _last_paint_y;
         private int _brush_size = 1;
         private int _mouse_x;
         private int _mouse_y;
-        private int _paint_color = 35;
+        private int _paint_color = 1;
         private bool _mouse_down;
         private bool _shift_down;
         private bool _draw_cursor;
@@ -113,7 +113,6 @@ namespace BLIT64_Editor
         public override void OnMouseLeave()
         {
             _draw_cursor = false;
-            _mouse_down = false;
         }
 
         public override void OnMouseUp(MouseButton button, int x, int y)
@@ -131,7 +130,19 @@ namespace BLIT64_Editor
                 return;
             }
 
+            ref var source_rect = ref PixmapViewer.Instance.SourceRect;
+
             var (paint_x, paint_y) = GetPaintPos(x, y);
+
+            if (
+                paint_x < source_rect.X || 
+                paint_y < source_rect.Y || 
+                paint_x > (source_rect.X + source_rect.W - _brush_size) || 
+                paint_y > (source_rect.Y + source_rect.H - _brush_size)
+            )
+            {
+                return;
+            }
 
             var delta_x = paint_x - _last_paint_x;
             var delta_y = paint_y - _last_paint_y;
@@ -228,7 +239,7 @@ namespace BLIT64_Editor
                     CURSOR_BORDER_SIZE, 
                     0);
 
-                blitter.RectBorder(cursor_x, cursor_y,  _brush_size * final_scale_x, _brush_size * final_scale_y, CURSOR_BORDER_SIZE, 35);
+                blitter.RectBorder(cursor_x, cursor_y,  _brush_size * final_scale_x, _brush_size * final_scale_y, CURSOR_BORDER_SIZE);
             }
 
             blitter.RectBorder(
@@ -236,8 +247,7 @@ namespace BLIT64_Editor
                 _area.Y,
                 _area.W,
                 _area.H,
-                PANEL_BORDER_SIZE,
-                35
+                PANEL_BORDER_SIZE
             );
 
             blitter.Rect(
@@ -246,6 +256,12 @@ namespace BLIT64_Editor
                 w: _area.W + 2 * PANEL_BORDER_SIZE, 
                 h: PANEL_BORDER_SIZE, 
                 col_index: 0);
+
+            var sprite_id_txt = $"#{PixmapViewer.Instance.CurrentSpriteId:000}";
+
+            var text_measure = blitter.TextMeasure(sprite_id_txt, 2);
+
+            blitter.Text(_area.X + _area.W/2 - text_measure.Width/2, _area.Y - text_measure.Height - 5, sprite_id_txt, 2);
         }
     }
 }

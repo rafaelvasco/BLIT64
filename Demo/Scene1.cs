@@ -26,9 +26,9 @@ namespace Demo
 
             Blitter.SetSurface(pixmap);
 
-            Blitter.Rect(0, 0, 16, 16, 0);
-            Blitter.Rect(0, 0, 8, 8, 35);
-            Blitter.Rect(8, 8, 8, 8, 35);
+            Blitter.Rect(0, 0, 16, 16, 2);
+            Blitter.Rect(0, 0, 8, 8);
+            Blitter.Rect(8, 8, 8, 8);
 
             Blitter.ResetSurface();
 
@@ -82,7 +82,7 @@ namespace Demo
                 rects[i].Draw(blitter);
             }
 
-            blitter.RectBorder(X - 50, Y - 50, 100, 100, 2, 35);
+            blitter.RectBorder(X - 50, Y - 50, 100, 100, 2);
 
             blitter.Pixel(X, Y, 35);
 
@@ -90,10 +90,10 @@ namespace Demo
 
             blitter.Pixmap(loaded_pixmap, 300, 150, BLIT64.Rect.Empty, -1, -1, -1, true);
 
-            blitter.Line(0, 0, Game.Width, Game.Height, 2, 35);
-            blitter.Line(0, Game.Height, Game.Width, 0, 2, 35);
-            blitter.Line(Game.Width/2, 0, Game.Width/2, Game.Height, 2, 35);
-            blitter.Line(0, Game.Height/2, Game.Width, Game.Height/2, 2, 35);
+            blitter.Line(0, 0, Game.Width, Game.Height, 2);
+            blitter.Line(0, Game.Height, Game.Width, 0, 2);
+            blitter.Line(Game.Width/2, 0, Game.Width/2, Game.Height, 2);
+            blitter.Line(0, Game.Height/2, Game.Width, Game.Height/2, 2);
         }
     }
 }

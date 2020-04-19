@@ -32,8 +32,8 @@ namespace Demo
             {
                 var x = (size / 2f) + (size / 4f) * Math.Cos(i);
                 var y = (size / 2f) + (size / 4f) * Math.Cos(i);
-                blitter.Line(size, 0, (int)x, (int)y, 1, 35);
-                blitter.Line(0, size, (int)x, (int)y, 1, 35);
+                blitter.Line(size, 0, (int)x, (int)y, 1);
+                blitter.Line(0, size, (int)x, (int)y, 1);
 
             }
 

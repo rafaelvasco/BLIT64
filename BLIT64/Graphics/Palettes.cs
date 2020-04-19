@@ -6,8 +6,9 @@
         //https://lospec.com/pinetreepizza
         public static readonly Palette Journey = new Palette(new []
         {
-            new Color(0x050914), 
-            new Color(0x110524), 
+            new Color(0x000000), 
+            new Color(0xffffff), 
+            new Color(0x171717), 
             new Color(0x3b063a), 
             new Color(0x691749), 
             new Color(0x9c3247), 
@@ -19,8 +20,8 @@
             new Color(0xd61a88), 
             new Color(0x94007a), 
             new Color(0x42004e), 
-            new Color(0x220029), 
             new Color(0x100726), 
+            new Color(0x220029), 
             new Color(0x25082c), 
             new Color(0x3d1132), 
             new Color(0x73263d), 
@@ -41,7 +42,6 @@
             new Color(0x488bd4), 
             new Color(0x78d7ff), 
             new Color(0xb0fff1), 
-            new Color(0xfaffff), 
             new Color(0xc7d4e1), 
             new Color(0x928fb8), 
             new Color(0x5b537d), 
@@ -76,8 +76,8 @@
         public static readonly Palette Famicube = new Palette(new []
         {
             new Color(0x000000), 
-            new Color(0xe03c28), 
             new Color(0xffffff), 
+            new Color(0xe03c28), 
             new Color(0xd7d7d7), 
             new Color(0xa8a8a8), 
             new Color(0x7b7b7b), 

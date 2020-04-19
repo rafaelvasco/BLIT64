@@ -38,16 +38,8 @@
                 var cr = colors[i];
                 var cg = colors[i+1];
                 var cb = colors[i+2];
-
-                if (cr == 255 && cg == 0 && cb == 255)
-                {
-                    Colors[this_colors_index++] = -1;
-                }
-                else
-                {
-                    var matched_color_index = current_palette.MatchColor(cr, cg, cb);
-                    Colors[this_colors_index++] = matched_color_index;
-                }
+                var matched_color_index = current_palette.MatchColor(cr, cg, cb);
+                Colors[this_colors_index++] = matched_color_index;
             }
         }
 

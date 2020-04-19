@@ -71,7 +71,7 @@ namespace BLIT64
                 {
                     var color_idx = color_idxs[i];
 
-                    if (color_idx > -1)
+                    if (color_idx > 0)
                     {
                         var rgb_color = palette.Map(color_idx);
                         *(p + rgb_surface_idx) = rgb_color.R;
@@ -92,7 +92,7 @@ namespace BLIT64
             }
         }
 
-        public void Pixel(int x, int y, int col_index = 0)
+        public void Pixel(int x, int y, int col_index = 1)
         {
             if (!_clip_rect.Contains(x, y))
             {
@@ -106,7 +106,7 @@ namespace BLIT64
             _current_blit_surface.Colors[idx] = col_index;
         }
 
-        public void Rect(int x, int y, int w, int h, int col_index = 0)
+        public void Rect(int x, int y, int w, int h, int col_index = 1)
         {
             NeedsUpdate = true;
 
@@ -129,7 +129,7 @@ namespace BLIT64
             }
         }
 
-        public void RectBorder(int x, int y, int w, int h, int line_size = 1, int col_index = 0)
+        public void RectBorder(int x, int y, int w, int h, int line_size = 1, int col_index = 1)
         {
             NeedsUpdate = true;
             
@@ -222,7 +222,7 @@ namespace BLIT64
             }
         }
 
-        public void Line2(int x1, int y1, int x2, int y2, int size, int col_index = 0)
+        public void Line2(int x1, int y1, int x2, int y2, int size, int col_index = 1)
         {
             NeedsUpdate = true;
 
@@ -291,7 +291,7 @@ namespace BLIT64
             }
         }
 
-        public void Line(int x1, int y1, int x2, int y2, int size, int col_index=0)
+        public void Line(int x1, int y1, int x2, int y2, int size, int col_index = 1)
         {
             NeedsUpdate = true;
 
@@ -429,12 +429,20 @@ namespace BLIT64
             }
         }
 
-        public void Text(int x, int y, string text, int scale=1)
+        public (int Width, int Height) TextMeasure(string text, int scale=1)
+        {
+            return (text.Length * 8 * scale, 8 * scale); //TODO
+        }
+
+        public void Text(int x, int y, string text, int scale=1, int col_index = 1)
         {
             //TODO: Parameterize Glyph Size
 
             var default_font = _default_font;
-            
+
+            var glyph_size = 8;
+            var scaled_glyph_size = glyph_size * scale;
+
             var sw = _current_blit_surface.Width;
             var pw = default_font.Width;
             var surface_colors = _current_blit_surface.Colors;
@@ -446,14 +454,14 @@ namespace BLIT64
                 char ch = text[ci];
                 int glyph_index = ch - 32;
 
-                var min_x = Math.Max(x + ci * 8, clip_rect.Left);
+                var min_x = Math.Max(x + ci * scaled_glyph_size, clip_rect.Left);
                 var min_y = Math.Max(y, clip_rect.Top);
-                var max_x = Math.Min(x + ci * 8 + 8, clip_rect.Right);
-                var max_y = Math.Min(y + 8, clip_rect.Bottom);
+                var max_x = Math.Min(x + ci * scaled_glyph_size + scaled_glyph_size, clip_rect.Right);
+                var max_y = Math.Min(y + scaled_glyph_size, clip_rect.Bottom);
 
                 var src_rect = new Rect(
-                    (glyph_index % 16)*8,
-                    (glyph_index / 16)*8,
+                    (glyph_index % 16)*glyph_size,
+                    (glyph_index / 16)*glyph_size,
                     8,
                     8
                 );
@@ -463,12 +471,16 @@ namespace BLIT64
                     for (var j = min_y; j < max_y; ++j)
                     {
                         var surf_idx = (i + j * sw);
-                        var pix_idx = ((src_rect.X + ((i - (x + ci * 8))/scale)) + (src_rect.Y +((j - y)/scale)) * pw);
+                        var pix_idx = ((src_rect.X + ((i - (x + ci * scaled_glyph_size))/scale)) + (src_rect.Y +((j - y)/scale)) * pw);
                         var pix_color = font_colors[pix_idx];
 
-                        if (pix_color == -1)
+                        switch (pix_color)
                         {
-                            continue;
+                            case 0:
+                                continue;
+                            case 1 when pix_color != col_index:
+                                pix_color = col_index;
+                                break;
                         }
 
                         surface_colors[surf_idx] = pix_color;

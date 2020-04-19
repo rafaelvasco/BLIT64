@@ -1,22 +1,23 @@
-﻿using System.IO.Compression;
-using BLIT64;
+﻿using BLIT64;
 
 namespace BLIT64_Editor
 {
     internal class PixmapViewer : PixmapDisplayComponent
     {
-        public static readonly int Size = Editor.TileSize * 32;
+        public static readonly int Size = SpriteEditor.TileSize * 32;
 
         public static PixmapViewer Instance { get; private set; }
 
         public ref Rect SourceRect => ref _current_source_rect;
+
+        public int CurrentSpriteId { get; private set; }
 
         private Rect _current_source_rect;
         private int _last_cursor_x;
         private int _last_cursor_y;
         private bool _mouse_down;
 
-        private const int PANEL_BORDER_SIZE = 3;
+        private const int PANEL_BORDER_SIZE = 2;
 
 
         public PixmapViewer(Blitter blitter, Rect area, Rect source_rect) : base(blitter, area)
@@ -30,8 +31,8 @@ namespace BLIT64_Editor
             this._current_source_rect = new Rect(
                 this._current_source_rect.X,
                 this._current_source_rect.Y,
-                Editor.TileSize * multiplier,
-                Editor.TileSize * multiplier
+                SpriteEditor.TileSize * multiplier,
+                SpriteEditor.TileSize * multiplier
             );
 
             ClampSourceRect();
@@ -44,6 +45,7 @@ namespace BLIT64_Editor
             _mouse_down = true;
 
             UpdateSourceRectFromMouseCursor(_last_cursor_x, _last_cursor_y);
+            UpdateSpriteIdFromSourceRect();
         }
 
         private void UpdateSourceRectFromMouseCursor(int cursor_x, int cursor_y)
@@ -56,6 +58,12 @@ namespace BLIT64_Editor
             );
 
             ClampSourceRect();
+        }
+
+        private void UpdateSpriteIdFromSourceRect()
+        {
+            //TODO:
+            CurrentSpriteId = (_current_source_rect.X + _current_source_rect.Y * (_current_pixmap.Width/SpriteEditor.TileSize))/SpriteEditor.TileSize;
         }
 
         private void ClampSourceRect()
@@ -90,17 +98,12 @@ namespace BLIT64_Editor
             var (transformed_x, transformed_y) = base.GetLocalTransformedMousePos(x, y);
 
             return (
-                (int) Calc.Snap(transformed_x - _current_source_rect.W/2, Editor.TileSize),
-                (int) Calc.Snap(transformed_y - _current_source_rect.H/2, Editor.TileSize)
+                (int) Calc.Snap(transformed_x - _current_source_rect.W/2, SpriteEditor.TileSize),
+                (int) Calc.Snap(transformed_y - _current_source_rect.H/2, SpriteEditor.TileSize)
             );
         }
 
         public override void OnMouseUp(MouseButton button, int x, int y)
-        {
-            _mouse_down = false;
-        }
-
-        public override void OnMouseLeave()
         {
             _mouse_down = false;
         }
@@ -120,6 +123,7 @@ namespace BLIT64_Editor
             if (delta_x != 0 || delta_y != 0)
             {
                 UpdateSourceRectFromMouseCursor(cursor_x, cursor_y);
+                UpdateSpriteIdFromSourceRect();
                 _last_cursor_x = cursor_x;
                 _last_cursor_y = cursor_y;
             }
@@ -131,7 +135,7 @@ namespace BLIT64_Editor
 
             blitter.Pixmap(_current_pixmap, _area.X, _area.Y, Rect.Empty, _area.W, _area.H);
 
-            blitter.RectBorder(_area.X, _area.Y, _area.W, _area.H, PANEL_BORDER_SIZE, 35);
+            blitter.RectBorder(_area.X, _area.Y, _area.W, _area.H, PANEL_BORDER_SIZE);
 
             var scale_factor = _area.W / _current_pixmap.Width;
 
@@ -140,8 +144,7 @@ namespace BLIT64_Editor
                 _area.Y + _current_source_rect.Y * scale_factor,
                 _current_source_rect.W * scale_factor,
                 _current_source_rect.H * scale_factor,
-                1 * scale_factor,
-                35
+                1 * scale_factor
             );
 
             blitter.Rect(
@@ -149,7 +152,7 @@ namespace BLIT64_Editor
                 y: _area.Y + _area.H + PANEL_BORDER_SIZE, 
                 w: _area.W + 2 * PANEL_BORDER_SIZE, 
                 h: PANEL_BORDER_SIZE, 
-                col_index: 0);
+                col_index: 2);
         }
     }
 }
