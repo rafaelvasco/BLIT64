@@ -2,7 +2,7 @@
 
 namespace BLIT64_Editor
 {
-    public abstract class Component
+    public abstract class Component : EventEmitter
     {
         public ref Rect Area => ref _area;
 
@@ -22,7 +22,6 @@ namespace BLIT64_Editor
             _area = area;
         }
 
-
         public abstract void OnMouseDown(MouseButton button, int x, int y);
         public abstract void OnMouseUp(MouseButton button, int x, int y);
         public abstract void OnMouseMove(int x, int y);
@@ -34,5 +33,16 @@ namespace BLIT64_Editor
         public virtual void OnMouseEnter() {}
         public virtual void OnMouseLeave() {}
         public abstract void Draw();
+
+        protected void DrawAreaRect(byte color)
+        {
+            _blitter.Rect(
+                _area.X,
+                _area.Y,
+                _area.W,
+                _area.H,
+                color
+            );
+        }
     }
 }

@@ -1,14 +1,13 @@
-﻿using System;
-using BLIT64;
+﻿using BLIT64;
 
 namespace BLIT64_Editor
 {
     public class ColorCell
     {
         public Rect Rect;
-        public int Color;
+        public byte Color;
 
-        public ColorCell(int x, int y, int w, int h, int color)
+        public ColorCell(int x, int y, int w, int h, byte color)
         {
             Rect = new Rect(x, y, w, h);
             Color = color;
@@ -17,14 +16,11 @@ namespace BLIT64_Editor
 
     public class ColorPicker : Component
     {
-        public static int Width { get; } = 256;
-        public static int Height { get; } = 0;
+        public delegate void ColorPickerEvent(byte color);
 
-        public delegate void ColorPickerEvent(int color);
+        public event ColorPickerEvent OnChange = delegate(byte color) {};
 
-        public event ColorPickerEvent OnColorChange;
-
-        public int CurrentColor { get; private set; } = 1;
+        public byte CurrentColor { get; private set; } = 1;
 
         public static readonly int HorizontalCells = 16;
         public static readonly int PanelBorderSize = 2;
@@ -48,6 +44,12 @@ namespace BLIT64_Editor
             _current_palette = palette;
         }
 
+        public void SetColor(byte color)
+        {
+            CurrentColor = color;
+            OnChange.Invoke(color);
+        }
+
         public override void OnMouseDown(MouseButton button, int x, int y)
         {
             _mouse_down = true;
@@ -67,8 +69,8 @@ namespace BLIT64_Editor
                 return;
             }
 
-            x = Calc.Clamp(x, PanelBorderSize, _area.W-PanelBorderSize);
-            y = Calc.Clamp(y, PanelBorderSize, _area.H-PanelBorderSize);
+            x = Calc.Clamp(x, PanelBorderSize, _area.W-2*PanelBorderSize);
+            y = Calc.Clamp(y, PanelBorderSize, _area.H-2*PanelBorderSize);
 
             PickAt(x, y);
         }
@@ -80,8 +82,7 @@ namespace BLIT64_Editor
                 var cell = _color_cells[i];
                 if (cell.Rect.Contains(x, y))
                 {
-                    CurrentColor = cell.Color;
-                    OnColorChange?.Invoke(CurrentColor);
+                    SetColor(cell.Color);
                     break;
                 }
             }
@@ -91,14 +92,14 @@ namespace BLIT64_Editor
         {
             var blitter = _blitter;
 
-            blitter.Rect(_area.X, _area.Y, _area.W, _area.H);
+            blitter.Rect(_area.X, _area.Y, _area.W, _area.H, Palette.WhiteColor);
 
             blitter.Rect(
                 x: _area.X, 
                 y: _area.Y + _area.H, 
                 w: _area.W, 
                 h: PanelBorderSize, 
-                col_index: 0);
+                color: Palette.BlackColor);
 
             for (int i = 0; i < _color_cells.Length; ++i)
             {
@@ -138,6 +139,7 @@ namespace BLIT64_Editor
                 current_cell_rect.Y,
                 current_cell_rect.W,
                 current_cell_rect.H,
+                Palette.WhiteColor,
                 PanelBorderSize
             );
 
@@ -146,7 +148,7 @@ namespace BLIT64_Editor
                 y: current_cell_rect.Y + current_cell_rect.H + PanelBorderSize, 
                 w: current_cell_rect.W + PanelBorderSize*2, 
                 h: PanelBorderSize, 
-                col_index: 2);
+                color: Palette.BlackColor);
 
 
             var transparent_col_cell = _color_cells[0];
@@ -156,7 +158,7 @@ namespace BLIT64_Editor
                 _area.X + transparent_col_cell.Rect.X + transparent_col_cell.Rect.W/2 - 2, 
                 _area.Y + transparent_col_cell.Rect.Y + transparent_col_cell.Rect.H/2 - 2, 
                 4, 
-                4, 1
+                4, Palette.WhiteColor, 1
             );
         }
 
@@ -178,7 +180,7 @@ namespace BLIT64_Editor
                     ((line * _cell_size) + CellSpacing * line) + CellSpacing,
                     _cell_size, 
                     _cell_size,
-                    i
+                    (byte)i
                 );
 
                 col += 1;

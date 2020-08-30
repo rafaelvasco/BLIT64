@@ -46,12 +46,12 @@ namespace BLIT64
             DisplayScaleFactorY = (float) display_height / _render_surface_height;
         }
 
-        public static void PresentPixmap(RenderSurface render_surface)
+        public static void PresentPixmap(DrawSurface draw_surface)
         {
             SDL_LockTexture(_render_texture, IntPtr.Zero, out var pixels, out var pitch);
             unsafe
             {
-                Unsafe.CopyBlock((void*) pixels, (void*) render_surface.DataPtr, render_surface.ByteCount);
+                Unsafe.CopyBlock((void*) pixels, (void*) draw_surface.DataPtr, draw_surface.ByteCount);
             }
             SDL_UnlockTexture(_render_texture);
             SDL_RenderCopy(_graphics_context, _render_texture, IntPtr.Zero, IntPtr.Zero);

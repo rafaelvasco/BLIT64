@@ -6,70 +6,70 @@
         //https://lospec.com/pinetreepizza
         public static readonly Palette Journey = new Palette(new []
         {
-            new Color(0x000000), 
-            new Color(0xffffff), 
-            new Color(0x171717), 
-            new Color(0x3b063a), 
-            new Color(0x691749), 
-            new Color(0x9c3247), 
-            new Color(0xd46453), 
-            new Color(0xf5a15d), 
-            new Color(0xffcf8e), 
-            new Color(0xff7a7d), 
-            new Color(0xff417d), 
-            new Color(0xd61a88), 
-            new Color(0x94007a), 
-            new Color(0x42004e), 
-            new Color(0x100726), 
-            new Color(0x220029), 
-            new Color(0x25082c), 
-            new Color(0x3d1132), 
-            new Color(0x73263d), 
-            new Color(0xbd4035), 
-            new Color(0xed7b39), 
-            new Color(0xffb84a), 
-            new Color(0xfff540), 
-            new Color(0xc6d831), 
-            new Color(0x77b02a), 
-            new Color(0x429058), 
-            new Color(0x2c645e), 
-            new Color(0x153c4a), 
-            new Color(0x052137), 
-            new Color(0x0e0421), 
-            new Color(0x0c0b42), 
-            new Color(0x032769), 
-            new Color(0x144491), 
-            new Color(0x488bd4), 
-            new Color(0x78d7ff), 
-            new Color(0xb0fff1), 
-            new Color(0xc7d4e1), 
-            new Color(0x928fb8), 
-            new Color(0x5b537d), 
-            new Color(0x392946), 
-            new Color(0x24142c), 
-            new Color(0x0e0f2c), 
-            new Color(0x132243), 
-            new Color(0x1a466b), 
-            new Color(0x10908e), 
-            new Color(0x28c074), 
-            new Color(0x3dff6e), 
-            new Color(0xf8ffb8), 
-            new Color(0xf0c297), 
-            new Color(0xcf968c), 
-            new Color(0x8f5765), 
-            new Color(0x52294b), 
-            new Color(0x0f022e), 
-            new Color(0x35003b), 
-            new Color(0x64004c), 
-            new Color(0x9b0e3e), 
-            new Color(0xd41e3c), 
-            new Color(0xed4c40), 
-            new Color(0xff9757), 
-            new Color(0xd4662f), 
-            new Color(0x9c341a), 
-            new Color(0x691b22), 
-            new Color(0x450c28), 
-            new Color(0x2d002e)
+            new Color(0x000000), // 0
+            new Color(0xffffff), // 1
+            new Color(0x171717), // 2
+            new Color(0x3b063a), // 3
+            new Color(0x691749), // 4
+            new Color(0x9c3247), // 5
+            new Color(0xd46453), // 6
+            new Color(0xf5a15d), // 7
+            new Color(0xffcf8e), // 8
+            new Color(0xff7a7d), // 9
+            new Color(0xff417d), // 10
+            new Color(0xd61a88), // 11
+            new Color(0x94007a), // 12
+            new Color(0x42004e), // 13
+            new Color(0x100726), // 14
+            new Color(0x220029), // 15
+            new Color(0x25082c), // 16
+            new Color(0x3d1132), // 17
+            new Color(0x73263d), // 18
+            new Color(0xbd4035), // 19
+            new Color(0xed7b39), // 20
+            new Color(0xffb84a), // 21
+            new Color(0xfff540), // 22
+            new Color(0xc6d831), // 23
+            new Color(0x77b02a), // 24
+            new Color(0x429058), // 25
+            new Color(0x2c645e), // 26
+            new Color(0x153c4a), // 27
+            new Color(0x052137), // 28
+            new Color(0x0e0421), // 29
+            new Color(0x0c0b42), // 30
+            new Color(0x032769), // 31
+            new Color(0x144491), // 32
+            new Color(0x488bd4), // 33
+            new Color(0x78d7ff), // 34
+            new Color(0xb0fff1), // 35
+            new Color(0xc7d4e1), // 36
+            new Color(0x928fb8), // 37
+            new Color(0x5b537d), // 38
+            new Color(0x392946), // 39
+            new Color(0x24142c), // 40
+            new Color(0x0e0f2c), // 41
+            new Color(0x132243), // 42
+            new Color(0x1a466b), // 43
+            new Color(0x10908e), // 44
+            new Color(0x28c074), // 45
+            new Color(0x3dff6e), // 46
+            new Color(0xf8ffb8), // 47
+            new Color(0xf0c297), // 48
+            new Color(0xcf968c), // 49
+            new Color(0x8f5765), // 50
+            new Color(0x52294b), // 51
+            new Color(0x0f022e), // 52
+            new Color(0x35003b), // 53
+            new Color(0x64004c), // 54
+            new Color(0x9b0e3e), // 55
+            new Color(0xd41e3c), // 56
+            new Color(0xed4c40), // 57
+            new Color(0xff9757), // 58
+            new Color(0xd4662f), // 59
+            new Color(0x9c341a), // 60
+            new Color(0x691b22), // 61
+            new Color(0x450c28), // 62
+            new Color(0x2d002e)  // 63
         });
 
         //http://androidarts.com/palette/Famicube.htm

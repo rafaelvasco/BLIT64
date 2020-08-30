@@ -23,4 +23,17 @@
         {
         }
     }
+
+    public class LoaderScene : Scene
+    {
+        public override void Update()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void Draw(Blitter blitter)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
 }

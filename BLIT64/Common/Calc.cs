@@ -37,6 +37,11 @@ namespace BLIT64
 
         public static int SnapToInt(float value, float increment)
         {
+            if (increment < 2.0f)
+            {
+                return Calc.FastFloorToInt(value);
+            }
+
             return (int) (Calc.FastFloorToInt(value / increment) * increment);
         }
 

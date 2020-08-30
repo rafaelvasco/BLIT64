@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BLIT64_CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "build_assets  C:\\Dev\\BLIT64\\BLIT64\\Embedded\\manifest.bon CommonAssets.pak "
+    }
+  }
+}

@@ -9,11 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Embedded\default_font.png" />
+    <None Remove="Embedded\CommonAssets.pak" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Embedded\default_font.png" />
+    <EmbeddedResource Include="Embedded\CommonAssets.pak" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,7 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.0" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BLIT64_Common\BLIT64_Common.csproj" />
   </ItemGroup>
 
 </Project>

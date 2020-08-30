@@ -11,10 +11,11 @@ namespace BLIT64
             image_data, 
             image_width, 
             image_height, 
-            glyph_size, 
             glyph_size)
         {
         }
+
+        public int GlyphSize => TileSize;
 
         public ref Rect this[char character]
         {
@@ -23,12 +24,12 @@ namespace BLIT64
                 int char_code = character;
                 int index = char_code - 32;
 
-                if (index < 0 || index > _tiles.Length-1)
+                if (index < 0 || index > Tiles.Length-1)
                 {
                     index = 0;
                 }
 
-                return ref _tiles[index];
+                return ref Tiles[index];
             }
         }
     }

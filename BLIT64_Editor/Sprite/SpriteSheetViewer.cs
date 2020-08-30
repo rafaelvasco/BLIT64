@@ -2,11 +2,9 @@
 
 namespace BLIT64_Editor
 {
-    internal class PixmapViewer : PixmapDisplayComponent
+    internal class SpriteSheetViewer : SpriteSheetDisplayComponent
     {
-        public static readonly int Size = SpriteEditor.TileSize * 32;
-
-        public static PixmapViewer Instance { get; private set; }
+        public static SpriteSheetViewer Instance { get; private set; }
 
         public ref Rect SourceRect => ref _current_source_rect;
 
@@ -20,7 +18,7 @@ namespace BLIT64_Editor
         private const int PANEL_BORDER_SIZE = 2;
 
 
-        public PixmapViewer(Blitter blitter, Rect area, Rect source_rect) : base(blitter, area)
+        public SpriteSheetViewer(Blitter blitter, Rect area, Rect source_rect) : base(blitter, area)
         {
             Instance = this;
             _current_source_rect = source_rect;
@@ -40,7 +38,7 @@ namespace BLIT64_Editor
 
         public override void OnMouseDown(MouseButton button, int x, int y)
         {
-            (_last_cursor_x, _last_cursor_y) = GetLocalTransformedMousePos(x, y);
+            (_last_cursor_x, _last_cursor_y) = GetTransformedMousePos(x, y);
 
             _mouse_down = true;
 
@@ -62,8 +60,7 @@ namespace BLIT64_Editor
 
         private void UpdateSpriteIdFromSourceRect()
         {
-            //TODO:
-            CurrentSpriteId = (_current_source_rect.X + _current_source_rect.Y * (_current_pixmap.Width/SpriteEditor.TileSize))/SpriteEditor.TileSize;
+            CurrentSpriteId = (_current_source_rect.X + _current_source_rect.Y * (CurrentSpritesheet.Width/SpriteEditor.TileSize))/SpriteEditor.TileSize;
         }
 
         private void ClampSourceRect()
@@ -75,27 +72,27 @@ namespace BLIT64_Editor
             {
                 x = 0;
             }
-            else if (x + _current_source_rect.W > _current_pixmap.Width)
+            else if (x + _current_source_rect.W > CurrentSpritesheet.Width)
             {
-                x = _current_pixmap.Width - _current_source_rect.W;
+                x = CurrentSpritesheet.Width - _current_source_rect.W;
             }
 
             if (y < 0)
             {
                 y = 0;
             }
-            else if (y + _current_source_rect.H > _current_pixmap.Height)
+            else if (y + _current_source_rect.H > CurrentSpritesheet.Height)
             {
-                y = _current_pixmap.Height - _current_source_rect.H;
+                y = CurrentSpritesheet.Height - _current_source_rect.H;
             }
 
             _current_source_rect = new Rect(x, y, _current_source_rect.W, _current_source_rect.H);
 
         }
 
-        protected override (int X, int Y) GetLocalTransformedMousePos(int x, int y)
+        protected override (int X, int Y) GetTransformedMousePos(int x, int y)
         {
-            var (transformed_x, transformed_y) = base.GetLocalTransformedMousePos(x, y);
+            var (transformed_x, transformed_y) = base.GetTransformedMousePos(x, y);
 
             return (
                 (int) Calc.Snap(transformed_x - _current_source_rect.W/2, SpriteEditor.TileSize),
@@ -115,7 +112,7 @@ namespace BLIT64_Editor
                 return;
             }
 
-            var (cursor_x, cursor_y) = GetLocalTransformedMousePos(x, y);
+            var (cursor_x, cursor_y) = GetTransformedMousePos(x, y);
 
             var delta_x = cursor_x - _last_cursor_x;
             var delta_y = cursor_y - _last_cursor_y;
@@ -133,17 +130,20 @@ namespace BLIT64_Editor
         {
             var blitter = _blitter;
 
-            blitter.Pixmap(_current_pixmap, _area.X, _area.Y, Rect.Empty, _area.W, _area.H);
+            blitter.Rect(_area.X, _area.Y, _area.W, _area.H, 2);
 
-            blitter.RectBorder(_area.X, _area.Y, _area.W, _area.H, PANEL_BORDER_SIZE);
+            blitter.Pixmap(CurrentSpritesheet, _area.X, _area.Y, ref Rect.Empty, _area.W, _area.H);
 
-            var scale_factor = _area.W / _current_pixmap.Width;
+            blitter.RectBorder(_area.X, _area.Y, _area.W, _area.H, Palette.WhiteColor, PANEL_BORDER_SIZE);
+
+            var scale_factor = _area.W / CurrentSpritesheet.Width;
 
             blitter.RectBorder(
                 _area.X + _current_source_rect.X * scale_factor,
                 _area.Y + _current_source_rect.Y * scale_factor,
                 _current_source_rect.W * scale_factor,
                 _current_source_rect.H * scale_factor,
+                Palette.WhiteColor,
                 1 * scale_factor
             );
 
@@ -152,7 +152,8 @@ namespace BLIT64_Editor
                 y: _area.Y + _area.H + PANEL_BORDER_SIZE, 
                 w: _area.W + 2 * PANEL_BORDER_SIZE, 
                 h: PANEL_BORDER_SIZE, 
-                col_index: 2);
+                color: Palette.BlackColor);
         }
+
     }
 }

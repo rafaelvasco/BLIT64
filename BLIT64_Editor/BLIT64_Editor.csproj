@@ -9,4 +9,16 @@
     <ProjectReference Include="..\BLIT64\BLIT64.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Assets\Main.pak">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\spr_ed_icons.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="layout.bon">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

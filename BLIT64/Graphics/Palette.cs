@@ -5,15 +5,19 @@ namespace BLIT64
 {
     public class Palette
     {
+        public const byte TransparentColor = 0;
+        public const byte WhiteColor = 1;
+        public const byte BlackColor = 2;
+        public const byte NoColor = 255;
+        
         public int Count => _colors.Length;
-
         protected Color[] _colors;
-        private readonly Dictionary<Color, int> _reverse_map;
+        private readonly Dictionary<Color, byte> _reverse_map;
 
         public Palette(Color[] colors)
         {
             _colors = colors;
-            _reverse_map = new Dictionary<Color, int>();
+            _reverse_map = new Dictionary<Color, byte>();
 
             for (var i = 0; i < _colors.Length; ++i)
             {
@@ -22,9 +26,9 @@ namespace BLIT64
 
         }
 
-        public int MatchColor(byte r, byte g, byte b)
+        public byte MatchColor(byte r, byte g, byte b)
         {
-            int best_match = 0;
+            byte best_match = 0;
             var best_delta = 765;
 
             for (var i = 0; i < _colors.Length; ++i)
@@ -36,7 +40,7 @@ namespace BLIT64
                 if (delta < best_delta)
                 {
                     best_delta = delta;
-                    best_match = i;
+                    best_match = (byte)i;
                 }
             }
 
@@ -50,7 +54,7 @@ namespace BLIT64
 
         public int ReverseMap(ref Color color)
         {
-            return _reverse_map.TryGetValue(color, out var index) ? index : (byte)0;
+            return _reverse_map.TryGetValue(color, out var index) ? index : (int) CommonColors.Black;
         }
 
     }

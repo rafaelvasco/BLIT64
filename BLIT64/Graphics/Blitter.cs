@@ -1,5 +1,5 @@
-﻿
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace BLIT64
 {
@@ -10,15 +10,15 @@ namespace BLIT64
         private Pixmap _current_blit_surface;
         private Rect _clip_rect;
         private readonly Pixmap _blit_surface;
-        private readonly RenderSurface _render_surface_ref;
+        private readonly DrawSurface _draw_surface_ref;
         private readonly Font _default_font;
 
-        internal Blitter(RenderSurface render_surface)
+        internal Blitter(DrawSurface draw_surface)
         {
-            _blit_surface = Assets.CreatePixmap(render_surface.Width, render_surface.Height);
-            _render_surface_ref = render_surface;
+            _blit_surface = Assets.CreatePixmap(draw_surface.Width, draw_surface.Height);
+            _draw_surface_ref = draw_surface;
             _current_blit_surface = _blit_surface;
-            _clip_rect = new Rect(0, 0, render_surface.Width, render_surface.Height);
+            _clip_rect = new Rect(0, 0, draw_surface.Width, draw_surface.Height);
             _default_font = Assets.GetEmbedded<Font>("default_font");
         }
 
@@ -35,11 +35,11 @@ namespace BLIT64
             }
         }
 
-        public void Clear(int color_index = 0)
+        public void Clear(byte color = Palette.BlackColor)
         {
             var clip_rect = _clip_rect;
            
-            Rect(clip_rect.X, clip_rect.Y, clip_rect.W, clip_rect.H, color_index);
+            Rect(clip_rect.X, clip_rect.Y, clip_rect.W, clip_rect.H, color);
 
             NeedsUpdate = true;
         }
@@ -55,11 +55,11 @@ namespace BLIT64
             SetSurface(_blit_surface);
         }
 
-        public void UpdateRenderSurface(Palette palette)
+        public void UpdateDrawSurface(Palette palette)
         {
             NeedsUpdate = false;
 
-            var rgba_surface = _render_surface_ref.DataPtr;
+            var rgba_surface = _draw_surface_ref.DataPtr;
 
             unsafe
             {
@@ -92,8 +92,10 @@ namespace BLIT64
             }
         }
 
-        public void Pixel(int x, int y, int col_index = 1)
+        public void Pixel(int x, int y, byte color)
         {
+            NeedsUpdate = true;
+
             if (!_clip_rect.Contains(x, y))
             {
                 return;
@@ -103,10 +105,10 @@ namespace BLIT64
             var ty = Calc.Clamp(y, _clip_rect.Top, _clip_rect.Bottom);
 
             var idx = tx + ty * _current_blit_surface.Width;
-            _current_blit_surface.Colors[idx] = col_index;
+            _current_blit_surface.Colors[idx] = color;
         }
 
-        public void Rect(int x, int y, int w, int h, int col_index = 1)
+        public void Rect(int x, int y, int w, int h, byte color)
         {
             NeedsUpdate = true;
 
@@ -124,12 +126,12 @@ namespace BLIT64
                 for (var j = min_y; j < max_y; j++)
                 {
                     var idx = i + j * sw;
-                    colors[idx] = col_index;
+                    colors[idx] = color;
                 }
             }
         }
 
-        public void RectBorder(int x, int y, int w, int h, int line_size = 1, int col_index = 1)
+        public void RectBorder(int x, int y, int w, int h, byte color, int line_size = 1)
         {
             NeedsUpdate = true;
             
@@ -159,7 +161,7 @@ namespace BLIT64
                     for (var j = min_y; j < max_y; j++)
                     {
                         var idx = i + j * sw;
-                        colors[idx] = col_index;
+                        colors[idx] = color;
                     }
                 }
             }
@@ -178,7 +180,7 @@ namespace BLIT64
                     for (var j = min_y; j < max_y; j++)
                     {
                         var idx = i + j * sw;
-                        colors[idx] = col_index;
+                        colors[idx] = color;
                     }
                 }
             }
@@ -197,7 +199,7 @@ namespace BLIT64
                     for (var j = min_y; j < max_y; j++)
                     {
                         var idx = i + j * sw;
-                        colors[idx] = col_index;
+                        colors[idx] = color;
                     }
                 }
             }
@@ -216,82 +218,66 @@ namespace BLIT64
                     for (var j = min_y; j < max_y; j++)
                     {
                         var idx = i + j * sw;
-                        colors[idx] = col_index;
+                        colors[idx] = color;
                     }
                 }
             }
         }
 
-        public void Line2(int x1, int y1, int x2, int y2, int size, int col_index = 1)
+        public void Line2(int x1, int y1, int x2, int y2, int size, byte color)
         {
             NeedsUpdate = true;
 
-            var dx = x2 - x1;
-            var dy = y1 - y1;
-            var adx = Math.Abs(dx);
-            var ady = Math.Abs(dy);
-            var eps = 0;
-            var sx = dx > 0 ? size : -size;
-            var sy = dy > 0 ? size : -size;
-            var sw = _current_blit_surface.Width;
-            var colors = _current_blit_surface.Colors;
+            int dx = Math.Abs(x2 - x1), sx = x1 < x2 ? size : -size;
+            int dy = Math.Abs(y2 - y1), sy = y1 < y2 ? size : -size;
+            int err = (dx > dy ? dx : -dy) / 2, e2;
             var clip_rect = _clip_rect;
 
-            if (adx > ady)
+            var sw = _current_blit_surface.Width;
+            var colors = _current_blit_surface.Colors;
+
+            while (true)
             {
-                for (int x = x1, y = y1; sx < 0 ? x >= x2 - sx : x <= x2 - sx; x += sx)
+                var min_x = Math.Max(x1, clip_rect.Left);
+                var min_y = Math.Max(y1, clip_rect.Top);
+                var max_x = Math.Min((x1 + size), clip_rect.Right);
+                var max_y = Math.Min((y1 + size), clip_rect.Bottom);
+
+                for (var i = min_x; i < max_x; ++i)
                 {
-                    var min_x = Math.Max(x, clip_rect.Left);
-                    var min_y = Math.Max(y, clip_rect.Top);
-                    var max_x = Math.Min((x + size), clip_rect.Right);
-                    var max_y = Math.Min((y + size), clip_rect.Bottom);
-
-                    for (int j = min_y; j < max_y; ++j)
+                    for (var j = min_y; j < max_y; j++)
                     {
-                        for (int i = min_x; i < max_x; ++i)
+                        var idx = i + j * sw;
+
+                        unchecked
                         {
-                            var idx = i + j * sw;
-                            colors[idx] = col_index;
+                            colors[idx] = color;    
                         }
-                    }
-
-                    eps += ady;
-                    if (eps << 1 >= adx)
-                    {
-                        y += sy;
-                        eps -= adx;
                     }
                 }
-            }
-            else
-            {
-                for (int x = x1, y = y1; sy < 0 ? y >= y2 - sy : y <= y2 - sy; y += sy)
+
+                if (x1 == x2 && y1 == y2)
                 {
-                    var min_x = Math.Max(x, clip_rect.Left);
-                    var min_y = Math.Max(y, clip_rect.Top);
-                    var max_x = Math.Min((x + size), clip_rect.Right);
-                    var max_y = Math.Min((y + size), clip_rect.Bottom);
+                    break;
+                }
 
-                    for (int j = min_y; j < max_y; ++j)
-                    {
-                        for (int i = min_x; i < max_x; ++i)
-                        {
-                            var idx = i + j * sw;
-                            colors[idx] = col_index;
-                        }
-                    }
+                e2 = err;
 
-                    eps += adx;
-                    if (eps << 1 >= ady)
-                    {
-                        x += sx;
-                        eps -= ady;
-                    }
+                if (e2 > -dx)
+                {
+                    err -= dy;
+                    x1 += sx;
+                }
+
+                if (e2 < dy)
+                {
+                    err += dx;
+                    y1 += sy;
                 }
             }
         }
 
-        public void Line(int x1, int y1, int x2, int y2, int size, int col_index = 1)
+        public void Line(int x1, int y1, int x2, int y2, int size, byte color)
         {
             NeedsUpdate = true;
 
@@ -304,17 +290,8 @@ namespace BLIT64
             var colors = _current_blit_surface.Colors;
             var clip_rect = _clip_rect;
 
-            int iterations = 0;
-
             while (true)
             {
-                iterations += 1;
-
-                if (iterations > 1000)
-                {
-                    break;
-                }
-
                 var min_x = Math.Max(x1, clip_rect.Left);
                 var min_y = Math.Max(y1, clip_rect.Top);
                 var max_x = Math.Min((x1 + size), clip_rect.Right);
@@ -325,7 +302,12 @@ namespace BLIT64
                     for (var j = min_y; j < max_y; j++)
                     {
                         var idx = i + j * sw;
-                        colors[idx] = col_index;
+
+                        unchecked
+                        {
+                            colors[idx] = color;    
+                        }
+                        
                     }
                 }
 
@@ -350,15 +332,140 @@ namespace BLIT64
             }
         }
 
+        public void FloodFill(int x, int y, byte color)
+        {
+            NeedsUpdate = true;
+
+            var sw = _current_blit_surface.Width;
+            var colors = _current_blit_surface.Colors;
+            var clip_rect = _clip_rect;
+
+            var target_color = colors[x + y * sw];
+
+            var color_queue = new Queue<(int, int)>();
+
+            color_queue.Enqueue((x,y));
+
+            bool ColorMatch(int x, int y)
+            {
+                return colors[x + y * sw] == target_color;
+            }
+
+            while (color_queue.Count > 0)
+            {
+                var (current_x, current_y) = color_queue.Dequeue();
+
+                if (!ColorMatch(current_x, current_y))
+                {
+                    continue;
+                }
+
+                var min_x = clip_rect.Left;
+                var min_y = clip_rect.Top;
+                var max_x = clip_rect.Right;
+                var max_y = clip_rect.Bottom;
+
+                var west_x = current_x;
+                var west_y = current_y;
+                var east_x = current_x + 1;
+                var east_y = current_y;
+
+                while ((west_x >= min_x) && ColorMatch(west_x, west_y))
+                {
+                    colors[west_x + west_y * sw] = color;
+
+                    if ((west_y > min_y) && ColorMatch(west_x, west_y - 1))
+                    {
+                        color_queue.Enqueue((west_x, west_y-1));
+                    }
+
+                    if ((west_y < max_y - 1) && ColorMatch(west_x, west_y+1))
+                    {
+                        color_queue.Enqueue((west_x, west_y+1));
+                    }
+
+                    west_x--;
+                }
+
+                while ((east_x <= max_x - 1) && ColorMatch(east_x, east_y))
+                {
+                    colors[east_x + east_y * sw] = color;
+
+                    if ((east_y > min_y) && ColorMatch(east_x, east_y - 1))
+                    {
+                        color_queue.Enqueue((east_x, east_y - 1));
+                    }
+
+                    if ((east_y < max_y - 1) && ColorMatch(east_x, east_y + 1))
+                    {
+                        color_queue.Enqueue((east_x, east_y + 1));
+                    }
+
+                    east_x++;
+                }
+            }
+        }
+
+        public void FlipH(int src_x, int src_y, int src_w, int src_h)
+        {
+            var colors = _current_blit_surface.Colors;
+            var sw = _current_blit_surface.Width;
+            var row = new byte[src_w];
+
+            for (var y = src_y; y < src_y + src_h; ++y)
+            {
+                var row_idx = 0;
+
+                for (var x = src_x; x < src_x + src_w; ++x)
+                {
+                    var idx = x + y * sw;
+                    row[row_idx++] = colors[idx];
+                }
+
+                for (var x = src_x; x < src_x + src_w; ++x)
+                {
+                    var idx = x + y * sw;
+                    colors[idx] = row[--row_idx];
+                }
+            }
+        }
+
+        public void FlipV(int src_x, int src_y, int src_w, int src_h)
+        {
+            var colors = _current_blit_surface.Colors;
+            var sh = _current_blit_surface.Height;
+            var col = new byte[src_h];
+
+            for (var x = src_x; x < src_x + src_w; ++x)
+            {
+                var col_idx = 0;
+
+                for (var y = src_y; y < src_y + src_h; ++y)
+                {
+                    var idx = x + y * sh;
+                    col[col_idx++] = colors[idx];
+                }
+
+                for (var y = src_y; y < src_y + src_h; ++y)
+                {
+                    var idx = x + y * sh;
+                    colors[idx] = col[--col_idx];
+                }
+            }
+        }
+
         public void Pixmap(Pixmap pixmap, 
             int x, 
             int y, 
-            Rect src_rect, 
-            int width=-1, 
-            int height=-1, 
-            int color_key=-1, 
+            ref Rect src_rect, 
+            float width = -1,
+            float height = -1,
+            byte color_key = Palette.TransparentColor, 
+            byte tint = Palette.NoColor,
             bool flip=false)
         {
+            NeedsUpdate = true;
+
             var sw = _current_blit_surface.Width;
             var pw = pixmap.Width;
             var surface_colors = _current_blit_surface.Colors;
@@ -370,12 +477,12 @@ namespace BLIT64
                 src_rect = new Rect(0, 0, pixmap.Width, pixmap.Height);
             }
 
-            if (width == -1)
+            if (width < 1)
             {
                 width = src_rect.W;
             }
 
-            if (height == -1)
+            if (height < 1)
             {
                 height = src_rect.H;
             }
@@ -395,12 +502,17 @@ namespace BLIT64
                     for (var j = min_y; j < max_y; ++j)
                     {
                         var surf_idx = (i + j * sw);
-                        var pix_idx = ((src_rect.X + ((i - x)/factor_w)) + (src_rect.Y +((j - y)/factor_h)) * pw);
+                        var pix_idx = ((src_rect.X + (int)((i - x)/factor_w)) + (src_rect.Y +(int)((j - y)/factor_h)) * pw);
                         var pix_color = pixmap_colors[pix_idx];
 
-                        if (color_key > -1 && pix_color == color_key)
+                        if (pix_color == color_key)
                         {
                             continue;
+                        }
+
+                        if (tint != Palette.NoColor)
+                        {
+                            pix_color = tint;
                         }
 
                         surface_colors[surf_idx] = pix_color;
@@ -415,12 +527,17 @@ namespace BLIT64
                     for (var j = min_y; j < max_y; ++j)
                     {
                         var surf_idx = (i + j * sw);
-                        var pix_idx = (start_pix_x - (i - x)/factor_w + (src_rect.Y +((j - y)/factor_h)) * pw);
+                        var pix_idx = (start_pix_x - (int)((i - x)/factor_w) + (src_rect.Y + (int)((j - y)/factor_h)) * pw);
                         var pix_color = pixmap_colors[pix_idx];
 
-                        if (color_key > -1 && pix_color == color_key)
+                        if (pix_color == color_key)
                         {
                             continue;
+                        }
+
+                        if (tint != Palette.NoColor)
+                        {
+                            pix_color = tint;
                         }
 
                         surface_colors[surf_idx] = pix_color;
@@ -434,17 +551,19 @@ namespace BLIT64
             return (text.Length * 8 * scale, 8 * scale); //TODO
         }
 
-        public void Text(int x, int y, string text, int scale=1, int col_index = 1)
+        public void Text(int x, int y, string text, int scale=1, byte tint = Palette.NoColor)
         {
-            //TODO: Parameterize Glyph Size
+            NeedsUpdate = true;
 
             var default_font = _default_font;
 
-            var glyph_size = 8;
+            var glyph_size = default_font.GlyphSize;
             var scaled_glyph_size = glyph_size * scale;
+            
 
             var sw = _current_blit_surface.Width;
             var pw = default_font.Width;
+            var count_glyphs = default_font.Width / glyph_size;
             var surface_colors = _current_blit_surface.Colors;
             var font_colors = default_font.Colors;
             var clip_rect = _clip_rect;
@@ -460,10 +579,10 @@ namespace BLIT64
                 var max_y = Math.Min(y + scaled_glyph_size, clip_rect.Bottom);
 
                 var src_rect = new Rect(
-                    (glyph_index % 16)*glyph_size,
-                    (glyph_index / 16)*glyph_size,
-                    8,
-                    8
+                    (glyph_index % count_glyphs)*glyph_size,
+                    (glyph_index / count_glyphs)*glyph_size,
+                    glyph_size,
+                    glyph_size
                 );
 
                 for (var i = min_x; i < max_x; ++i)
@@ -478,8 +597,8 @@ namespace BLIT64
                         {
                             case 0:
                                 continue;
-                            case 1 when pix_color != col_index:
-                                pix_color = col_index;
+                            case 1 when tint != Palette.NoColor:
+                                pix_color = tint;
                                 break;
                         }
 
@@ -488,6 +607,62 @@ namespace BLIT64
                 }
             }
 
+        }
+
+        /// <summary>
+        /// Draws a sprite from a SpriteSheet
+        /// </summary>
+        /// <param name="sprite_sheet"></param>
+        /// <param name="id">SpriteSheet cell id to draw</param>
+        /// <param name="x">X position on screen</param>
+        /// <param name="y">Y position on screen</param>
+        /// <param name="color_key">What color index on current Palette to remove when drawing</param>
+        /// <param name="tint">If this value is a valid color on palette, all white colors on sprite are substituted with it.</param>
+        /// <param name="scale">Scale to draw</param>
+        /// <param name="flip">Flip horizontally</param>
+        /// <param name="width">How many cells to draw horizontally. By default just the cell passed on 'id', that is width=1</param>
+        /// <param name="height">How many cells to draw vertically. By default just the cell passed on 'id', that is height=1</param>
+        public void Sprite(
+            SpriteSheet sprite_sheet, 
+            int id, 
+            int x, 
+            int y,
+            byte color_key = Palette.TransparentColor,
+            byte tint = Palette.NoColor,
+            float scale=1,
+            bool flip = false,
+            int width = 1,
+            int height = 1
+            )
+        {
+            ref var src_rect = ref BLIT64.Rect.Empty;
+
+            if (width < 2 && height < 2)
+            {
+                src_rect = ref sprite_sheet[id];
+            }
+            else
+            {
+                ref var single_cell_src_rect = ref sprite_sheet[id];
+
+                src_rect = new Rect(
+                    single_cell_src_rect.X, 
+                    single_cell_src_rect.Y,
+                    width * sprite_sheet.TileSize,
+                    height * sprite_sheet.TileSize
+                );
+            }
+            
+            Pixmap(
+                sprite_sheet,
+                x, y, 
+                ref src_rect,
+                width:src_rect.W * scale,
+                height:src_rect.H * scale,
+                color_key,
+                tint,
+                flip
+            );
         }
 
     }

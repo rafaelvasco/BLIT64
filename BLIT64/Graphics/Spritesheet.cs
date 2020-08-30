@@ -1,28 +1,44 @@
 ﻿
-using System;
-
 namespace BLIT64
 {
     public class SpriteSheet : Pixmap
     {
-        protected readonly Rect[] _tiles;
+        protected readonly Rect[] Tiles;
 
-        internal SpriteSheet(byte[] image_data, int image_width, int image_height, int cell_width, int cell_height) : base(image_data, image_width, image_height)
+        public int TileSize { get; }
+
+        public int TileCount => Tiles.Length;
+
+        private static Rect[] BuildTiles(int width, int height, int cell_size)
         {
-            int cells_horiz = this.Width / cell_width;
-            int cells_vert = this.Height / cell_height;
-            int idx = 0;
+            var cells_horiz = width / cell_size;
+            var cells_vert = height / cell_size;
+            var idx = 0;
 
-            _tiles = new Rect[cells_horiz * cells_vert];
-            for (int i = 0; i < cells_horiz; ++i)
+            var tiles = new Rect[cells_horiz * cells_vert];
+            for (var j = 0; j < cells_vert; ++j)
             {
-                for (int j = 0; j < cells_vert; ++j)
+                for (var i = 0; i < cells_horiz; ++i)
                 {
-                    _tiles[idx++] = new Rect(i * cell_width, j * cell_height, cell_width, cell_height);
+                    tiles[idx++] = new Rect(i * cell_size, j * cell_size, cell_size, cell_size);
                 }
             }
+
+            return tiles;
         }
 
-        public ref Rect this[int index] => ref _tiles[Calc.Clamp(index, 0, _tiles.Length - 1)];
+        internal SpriteSheet(int width, int height, int cell_size):base(width, height)
+        {
+            TileSize = cell_size;
+            Tiles = SpriteSheet.BuildTiles(width, height, cell_size);
+        }
+
+        internal SpriteSheet(byte[] image_data, int width, int height, int cell_size) : base(image_data, width, height)
+        {
+            TileSize = cell_size;
+            Tiles = SpriteSheet.BuildTiles(width, height, cell_size);
+        }
+
+        public ref Rect this[int index] => ref Tiles[Calc.Clamp(index, 0, Tiles.Length - 1)];
     }
 }

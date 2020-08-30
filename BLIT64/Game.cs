@@ -9,12 +9,14 @@ namespace BLIT64
         public Palette CurrentPalette => _current_palette;
 
         private bool _running;
-        private readonly RenderSurface _render_surface;
+        private readonly DrawSurface _draw_surface;
         private readonly Blitter _blitter;
         private Palette _current_palette;
         private static Game _instance;
 
         public double FrameRate { get; set; } = 60;
+
+        public int TileSize { get; } = 8;
 
         public Scene CurrentScene { get; private set; }
 
@@ -25,8 +27,8 @@ namespace BLIT64
             get => Platform.GetWindowSize();
             set
             {
-                var current_size = Platform.GetWindowSize();
-                if (value.Width == current_size.width && value.Height == current_size.height)
+                var (width, height) = Platform.GetWindowSize();
+                if (value.Width == width && value.Height == height)
                 {
                     return;
                 }
@@ -35,11 +37,11 @@ namespace BLIT64
             }
         }
 
-        public int Width => _render_surface.Width;
+        public int Width => _draw_surface.Width;
 
-        public int Height => _render_surface.Height;
+        public int Height => _draw_surface.Height;
 
-        public (int Width, int Height) Size => (_render_surface.Width, _render_surface.Height);
+        public (int Width, int Height) Size => (_draw_surface.Width, _draw_surface.Height);
 
         public string Title
         {
@@ -86,29 +88,25 @@ namespace BLIT64
                 render_surface_height = display_height;
             }
             _instance = this;
+            _current_palette = Palettes.Journey;
             
             Platform.Init(title, display_width, display_height, render_surface_width, render_surface_height, fullscreen);
             Platform.OnQuit += OnClose;
             Platform.WindowResized += OnWindowResize;
 
-            _current_palette = Palettes.Journey;
+            Assets.LoadEmbeddedAssetsPak();
 
-            Assets.LoadEmbeddedAssets();
+            Assets.LoadMainAssetsPak();
 
-            _render_surface = Assets.CreateRenderSurface(render_surface_width, render_surface_height);
+            _draw_surface = Assets.CreateRenderSurface(render_surface_width, render_surface_height);
             
-            _blitter = new Blitter(_render_surface);
+            _blitter = new Blitter(_draw_surface);
 
             Input.Init();
 
             CurrentScene = new EmptyScene();
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-        }
-
-        public double Time()
-        {
-            return (SDL_GetPerformanceCounter() * 1000.0) / SDL_GetPerformanceFrequency();
         }
 
         public void Run(Scene scene = null)
@@ -128,7 +126,7 @@ namespace BLIT64
             }
 
 
-            Platform.PresentPixmap(_render_surface);
+            Platform.PresentPixmap(_draw_surface);
             Platform.ShowWindow(true);
 
             Tick();
@@ -184,10 +182,10 @@ namespace BLIT64
 
                 if (_blitter.NeedsUpdate)
                 {
-                    _blitter.UpdateRenderSurface(_current_palette);
+                    _blitter.UpdateDrawSurface(_current_palette);
                 }
 
-                Platform.PresentPixmap(_render_surface);
+                Platform.PresentPixmap(_draw_surface);
 
                 var delay = next_tick - SDL_GetPerformanceCounter();
 

@@ -26,13 +26,13 @@ namespace Demo
 
             Blitter.SetSurface(pixmap);
 
-            Blitter.Rect(0, 0, 16, 16, 2);
-            Blitter.Rect(0, 0, 8, 8);
-            Blitter.Rect(8, 8, 8, 8);
+            Blitter.Rect(0, 0, 16, 16, Palette.WhiteColor);
+            Blitter.Rect(0, 0, 8, 8, Palette.WhiteColor);
+            Blitter.Rect(8, 8, 8, 8, Palette.WhiteColor);
 
             Blitter.ResetSurface();
 
-            loaded_pixmap = Assets.Get<Pixmap>("party");
+            loaded_pixmap = Assets.Get<Pixmap>("party.png");
 
         }
 
@@ -86,14 +86,13 @@ namespace Demo
 
             blitter.Pixel(X, Y, 35);
 
-            blitter.Pixmap(pixmap, X-32, Y-32, BLIT64.Rect.Empty, 64, 64);
+            blitter.Pixmap(pixmap, X-32, Y-32, ref BLIT64.Rect.Empty, 64, 64);
 
-            blitter.Pixmap(loaded_pixmap, 300, 150, BLIT64.Rect.Empty, -1, -1, -1, true);
-
-            blitter.Line(0, 0, Game.Width, Game.Height, 2);
-            blitter.Line(0, Game.Height, Game.Width, 0, 2);
-            blitter.Line(Game.Width/2, 0, Game.Width/2, Game.Height, 2);
-            blitter.Line(0, Game.Height/2, Game.Width, Game.Height/2, 2);
+            blitter.Line2(0, 0, Game.Width, Game.Height, 2, Palette.WhiteColor);
+            blitter.Line2(0, Game.Height, Game.Width, 0, 2, Palette.WhiteColor);
+            blitter.Line2(Game.Width/2, 0, Game.Width/2, Game.Height, 2, Palette.WhiteColor);
+            blitter.Line2(0, Game.Height/2, Game.Width, Game.Height/2, 2, Palette.WhiteColor);
+            blitter.Line(0, 0, Input.MousePos.X, Input.MousePos.Y, 2, Palette.WhiteColor);
         }
     }
 }

@@ -1,23 +1,24 @@
-﻿namespace BLIT64
+﻿
+namespace BLIT64
 {
-    public class Pixmap : Resource
+    public class Pixmap : GameAsset
     {
         public int Width { get; }
 
         public int Height { get; }
 
-        public int[] Colors;
+        public byte[] Colors;
 
         public Pixmap(int width, int height)
         {
             Width = width;
             Height = height;
 
-            Colors = new int[width*height];
+            Colors = new byte[width*height];
 
             for (int i = 0; i < Colors.Length; ++i)
             {
-                Colors[i] = -1;
+                Colors[i] = (int)CommonColors.Black;
             }
         }
 
@@ -31,7 +32,7 @@
 
             var this_colors_index = 0;
 
-            Colors = new int[width * height];
+            Colors = new byte[width * height];
 
             for (int i = 0; i < colors.Length; i+=4)
             {
@@ -43,7 +44,7 @@
             }
         }
 
-        public int GetColorAt(int x, int y)
+        public byte GetColorAt(int x, int y)
         {
             var colors = this.Colors;
 

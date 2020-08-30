@@ -1,6 +1,6 @@
 ﻿namespace BLIT64
 {
-    public abstract class Resource
+    public abstract class GameAsset
     {
         protected bool disposed = false;
 

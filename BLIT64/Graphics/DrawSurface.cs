@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace BLIT64
 {
-    internal class RenderSurface : Resource
+    internal class DrawSurface : GameAsset
     {
         public int Width { get; }
 
@@ -17,17 +17,17 @@ namespace BLIT64
         internal readonly IntPtr DataPtr;
         private byte[] _data;
 
-        ~RenderSurface()
+        ~DrawSurface()
         {
             Console.WriteLine("RenderSurface Leak");
             Dispose(false);
         }
 
-        internal RenderSurface(int width, int height) : this(new byte[width * height * 4], width, height )
+        internal DrawSurface(int width, int height) : this(new byte[width * height * 4], width, height )
         {
         }
 
-        internal RenderSurface(byte[] source_data, int width, int height)
+        internal DrawSurface(byte[] source_data, int width, int height)
         {
             Width = width;
             Height = height;

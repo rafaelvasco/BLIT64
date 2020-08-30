@@ -10,7 +10,7 @@ namespace Demo
         private int h = 6;
         private int dx = 7;
         private int dy = 4;
-        private int col;
+        private byte col;
 
 
         public override void Update()

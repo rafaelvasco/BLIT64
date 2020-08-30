@@ -1,0 +1,1 @@
+bin\Debug\netcoreapp3.1\BLIT64_CLI.exe build_assets C:\Dev\BLIT64\BLIT64\Embedd\manifest.bon CommonAssets.pak

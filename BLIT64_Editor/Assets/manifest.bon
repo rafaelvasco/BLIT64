@@ -1,0 +1,5 @@
+﻿[spr_ed_icons]
+
+type = SpriteSheet
+cell_size = 32
+file_path = spr_ed_icons.png
