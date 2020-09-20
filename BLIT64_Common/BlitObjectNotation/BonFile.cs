@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 namespace BLIT64_Common
 {
@@ -37,17 +38,22 @@ namespace BLIT64_Common
 
             throw new InvalidOperationException("This property value can't be cast to Float");
         }
+
+        public override string ToString()
+        {
+            return _value;
+        }
     }
 
     public class ListValueProp
     {
-        private readonly List<SingleValueProp> _list;
+        private readonly List<string> _list;
 
-        public List<SingleValueProp> Items => _list;
+        public List<string> Items => _list;
 
         public ListValueProp()
         {
-            _list = new List<SingleValueProp>();
+            _list = new List<string>();
         }
     }
 
@@ -62,18 +68,69 @@ namespace BLIT64_Common
             SectionName = name;
             ValueProps = new Dictionary<string, SingleValueProp>();
             ListProps = new Dictionary<string, ListValueProp>();
-        } 
+        }
+
+        public override string ToString()
+        {
+            var string_builder = new StringBuilder();
+
+            string_builder.AppendLine($"[{SectionName}]");
+
+            foreach (var single_value_prop in ValueProps)
+            {
+                string_builder.AppendLine($"{single_value_prop.Key} = {single_value_prop.Value}");
+            }
+
+            foreach (var list_value_prop in ListProps)
+            {
+                string_builder.Append($"{list_value_prop.Key} = [");
+
+                foreach (var prop_value in list_value_prop.Value.Items)
+                {
+                    string_builder.Append(prop_value);
+                    string_builder.Append(",");
+                }
+
+                string_builder.Append("]");
+            }
+
+
+            return string_builder.ToString();
+        }
     }
 
     public class BonFile
     {
         public Dictionary<string, BonFileSection> Sections;
 
-        public BonFileSection Main { get; internal set; }
+        public BonFileSection Main
+        {
+            get
+            {
+                if (Sections.TryGetValue("Root", out var section))
+                {
+                    return section;
+                }
+
+                return null;
+            }
+        }
 
         public BonFile()
         {
             Sections = new Dictionary<string, BonFileSection>();
+        }
+
+        public override string ToString()
+        {
+            var string_builder = new StringBuilder();
+
+            foreach (var bon_file_section in Sections)
+            {
+                string_builder.AppendLine(bon_file_section.ToString());
+            }
+
+            return string_builder.ToString();
         }
     }
 }

@@ -1,27 +1,34 @@
 ﻿using BLIT64;
+using BLIT64_Editor.Common;
 
 namespace BLIT64_Editor
 {
-    internal class SpriteSheetViewer : SpriteSheetDisplayComponent
+    internal class SpriteSheetNavigator : SpriteSheetDisplayComponent
     {
-        public static SpriteSheetViewer Instance { get; private set; }
-
-        public ref Rect SourceRect => ref _current_source_rect;
+        public static SpriteSheetNavigator Instance { get; private set; }
 
         public int CurrentSpriteId { get; private set; }
+
+        private readonly SpriteEditorLayout _layout;
 
         private Rect _current_source_rect;
         private int _last_cursor_x;
         private int _last_cursor_y;
         private bool _mouse_down;
 
-        private const int PANEL_BORDER_SIZE = 2;
-
-
-        public SpriteSheetViewer(Blitter blitter, Rect area, Rect source_rect) : base(blitter, area)
+        public SpriteSheetNavigator(
+            SpriteEditorLayout layout, 
+            Blitter blitter, 
+            Rect area, 
+            Rect source_rect) : base(blitter, area)
         {
             Instance = this;
+            _layout = layout;
             _current_source_rect = source_rect;
+
+            EmitRectChanged();
+
+            TypedMessager<int>.On(MessageCodes.SpriteNavigatorCursorSizeChanged, SetCursorSize);
         }
 
         public void SetCursorSize(int multiplier)
@@ -34,6 +41,8 @@ namespace BLIT64_Editor
             );
 
             ClampSourceRect();
+
+            EmitRectChanged();
         }
 
         public override void OnMouseDown(MouseButton button, int x, int y)
@@ -56,6 +65,8 @@ namespace BLIT64_Editor
             );
 
             ClampSourceRect();
+
+            EmitRectChanged();
         }
 
         private void UpdateSpriteIdFromSourceRect()
@@ -126,15 +137,21 @@ namespace BLIT64_Editor
             }
         }
 
+        public override void Update()
+        {
+        }
+
         public override void Draw()
         {
             var blitter = _blitter;
 
+            var panel_border_size = _layout.NavigatorPanelBorder;
+
             blitter.Rect(_area.X, _area.Y, _area.W, _area.H, 2);
 
-            blitter.Pixmap(CurrentSpritesheet, _area.X, _area.Y, ref Rect.Empty, _area.W, _area.H);
+            blitter.Pixmap(CurrentSpritesheet, _area.X, _area.Y, Rect.Empty, _area.W, _area.H);
 
-            blitter.RectBorder(_area.X, _area.Y, _area.W, _area.H, Palette.WhiteColor, PANEL_BORDER_SIZE);
+            blitter.RectBorder(_area.X, _area.Y, _area.W, _area.H, Palette.WhiteColor, panel_border_size);
 
             var scale_factor = _area.W / CurrentSpritesheet.Width;
 
@@ -148,11 +165,16 @@ namespace BLIT64_Editor
             );
 
             blitter.Rect(
-                x: _area.X - PANEL_BORDER_SIZE, 
-                y: _area.Y + _area.H + PANEL_BORDER_SIZE, 
-                w: _area.W + 2 * PANEL_BORDER_SIZE, 
-                h: PANEL_BORDER_SIZE, 
+                x: _area.X - panel_border_size, 
+                y: _area.Y + _area.H + panel_border_size, 
+                w: _area.W + 2 * panel_border_size, 
+                h: panel_border_size, 
                 color: Palette.BlackColor);
+        }
+
+        private void EmitRectChanged()
+        {
+            TypedMessager<Rect>.Emit(MessageCodes.SourceRectChanged, _current_source_rect);
         }
 
     }

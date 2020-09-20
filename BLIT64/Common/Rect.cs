@@ -3,21 +3,21 @@ using System;
 
 namespace BLIT64
 {
-    public readonly struct Rect : IEquatable<Rect>
+    public struct Rect : IEquatable<Rect>
     {
-        public static ref Rect Empty => ref _empty;
+        private static readonly Rect _empty = new Rect(0, 0, 0, 0);
 
-        public readonly int X;
-        public readonly int Y;
-        public readonly int W;
-        public readonly int H;
+        public static ref readonly Rect Empty => ref _empty;
+
+        public int X;
+        public int Y;
+        public int W;
+        public int H;
 
         public int Left => X;
         public int Top => Y;
         public int Right => X + W;
         public int Bottom => Y + H;
-
-        private static Rect _empty = new Rect(0, 0, 0, 0);
 
 
         public Rect(int x, int y, int w, int h)
@@ -26,6 +26,11 @@ namespace BLIT64
             Y = y;
             W = w;
             H = h;
+        }
+
+        public static Rect FromBox(int left, int top, int right, int bottom)
+        {
+            return new Rect(Math.Min(left, right), Math.Min(top, bottom), Math.Abs(right - left), Math.Abs(bottom - top));
         }
 
 
@@ -72,6 +77,11 @@ namespace BLIT64
             return new Rect(X + delta, Y + delta, W - 2 * delta, H - 2 * delta);
         }
 
+        public Rect SummedPositions(Rect value)
+        {
+            return new Rect(this.X + value.X, this.Y + value.Y, this.W, this.H);
+        }
+
         public bool Equals(Rect other)
         {
             return (X == other.X) && (Y == other.Y) && (W == other.W) && (H == other.H);
@@ -102,6 +112,7 @@ namespace BLIT64
         {
             return !Equals(ref value1, ref value2);
         }
+
 
         public override string ToString()
         {

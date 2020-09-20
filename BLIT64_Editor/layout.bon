@@ -1,17 +1,17 @@
-﻿[layout]
-
-main_panel_margin = 40
+﻿main_panel_margin = 40
 editor_size_multiplier = 16
+navigator_size_multiplier = 32
 editor_cursor_border = 2
 editor_panel_border = 2
-viewer_size_multiplier = 32
-toolbox_width = 288
+toolbox_width = 255
 toolbox_height = 32
-toolbox_margin = 10
+toolbox_margin = 15
 toolbox_icons_scale = 0.5
 toolbox_icons_spacing = 5
 toolbox_pointer_margin = 3
-toolbox_icon_shadow_offset = 2
+toolbox_icons_shadow_offset = 2
 colorpicker_width = 256
 selector_width = 70
-selector_height = 16
+selector_height = 17
+navigator_panel_border = 2
+editor_pixmap_size_multiplier = 16

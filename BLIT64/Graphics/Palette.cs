@@ -54,7 +54,7 @@ namespace BLIT64
 
         public int ReverseMap(ref Color color)
         {
-            return _reverse_map.TryGetValue(color, out var index) ? index : (int) CommonColors.Black;
+            return _reverse_map.TryGetValue(color, out var index) ? index : (int) 0;
         }
 
     }

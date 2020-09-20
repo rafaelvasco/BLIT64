@@ -88,6 +88,21 @@ namespace BLIT64
             SDL_Quit();
         }
 
+        public static void Delay(uint ms)
+        {
+            SDL_Delay(ms);
+        }
+
+        public static ulong GetPerformanceCounter()
+        {
+            return SDL_GetPerformanceCounter();
+        }
+
+        public static ulong GetPerformanceFrequency()
+        {
+            return SDL_GetPerformanceFrequency();
+        }
+
         public static void ProcessEvents()
         {
             while (SDL_PollEvent(out var ev) == 1)

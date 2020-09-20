@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Binaron.Serializer;
 using BLIT64_Common.IO;
@@ -15,9 +16,23 @@ namespace BLIT64_Common
 
             var output_path = Path.GetDirectoryName(manifest_file_path);
 
+            Console.WriteLine($"Building PAK from manifest file: {manifest_file_path}");
+
+            Console.WriteLine("Parsed BON File:");
+            Console.WriteLine(manifest.ToString());
+
             foreach (var section in manifest.Sections)
             {
+                if (section.Key == "Root")
+                {
+                    continue;
+                }
+
                 AssetTypes asset_type;
+
+                Console.WriteLine($"Adding Asset: {section.Key}");
+
+                Console.WriteLine($"Type: {section.Value.ValueProps["type"].GetValue()}");
 
                 try
                 {
@@ -75,13 +90,33 @@ namespace BLIT64_Common
 
                         var cell_size = section.Value.ValueProps["cell_size"].GetIntValue();
 
+                        Dictionary<string, int> sprite_map = new Dictionary<string, int>();
+
+                        if (section.Value.ListProps.ContainsKey("sprites"))
+                        {
+                            var sprite_map_pairs = section.Value.ListProps["sprites"].Items;
+
+                            foreach (var sprite_map_pair in sprite_map_pairs)
+                            {
+                                if (!sprite_map_pair.Contains(':'))
+                                {
+                                    continue;
+                                }
+
+                                var values = sprite_map_pair.Split(':');
+
+                                sprite_map.Add(values[0], int.Parse(values[1]));
+                            }
+                        }
+
                         var sheet_data = new SpriteSheetData()
                         {
                             Id = section.Key,
                             CellSize = cell_size,
                             ImageData = sheet_image.ImageData,
                             ImageWidth = sheet_image.Width,
-                            ImageHeight = sheet_image.Height
+                            ImageHeight = sheet_image.Height,
+                            SpriteMap = sprite_map
                         };
 
                         pak.AddSheet(sheet_data);

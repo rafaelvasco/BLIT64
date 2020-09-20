@@ -28,4 +28,8 @@
     <ProjectReference Include="..\BLIT64_Common\BLIT64_Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\Behaviors\" />
+  </ItemGroup>
+
 </Project>

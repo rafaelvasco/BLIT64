@@ -2,13 +2,10 @@
 
 namespace Demo
 {
-    
-
     public class Scene1 : Scene
     {
         private Rect[] rects;
         private Pixmap pixmap;
-        private Pixmap loaded_pixmap;
         private const int count = 10;
         public int X = 0;
         public int Y = 0;
@@ -32,7 +29,6 @@ namespace Demo
 
             Blitter.ResetSurface();
 
-            loaded_pixmap = Assets.Get<Pixmap>("party.png");
 
         }
 
@@ -86,13 +82,15 @@ namespace Demo
 
             blitter.Pixel(X, Y, 35);
 
-            blitter.Pixmap(pixmap, X-32, Y-32, ref BLIT64.Rect.Empty, 64, 64);
+            blitter.Pixmap(pixmap, X-32, Y-32, BLIT64.Rect.Empty, 64, 64);
 
-            blitter.Line2(0, 0, Game.Width, Game.Height, 2, Palette.WhiteColor);
-            blitter.Line2(0, Game.Height, Game.Width, 0, 2, Palette.WhiteColor);
-            blitter.Line2(Game.Width/2, 0, Game.Width/2, Game.Height, 2, Palette.WhiteColor);
-            blitter.Line2(0, Game.Height/2, Game.Width, Game.Height/2, 2, Palette.WhiteColor);
-            blitter.Line(0, 0, Input.MousePos.X, Input.MousePos.Y, 2, Palette.WhiteColor);
+            blitter.Text(50, 50, $"Mouse Pos: {Input.MousePos}");
+
+            blitter.Line(0, 0, Game.Width, Game.Height, 2, Palette.WhiteColor);
+            blitter.Line(0, Game.Height, Game.Width, 0, 2, Palette.WhiteColor);
+            blitter.Line(Game.Width/2, 0, Game.Width/2, Game.Height, 2, Palette.WhiteColor);
+            blitter.Line(0, Game.Height/2, Game.Width, Game.Height/2, 2, Palette.WhiteColor);
+            blitter.Line(0, 0, Input.MousePos.X, Input.MousePos.Y, 1, Palette.WhiteColor);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿namespace BLIT64_Editor
+﻿
+namespace BLIT64_Editor
 {
     public enum Tools
     {

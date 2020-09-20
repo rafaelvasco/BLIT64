@@ -3,3 +3,4 @@
 type = SpriteSheet
 cell_size = 32
 file_path = spr_ed_icons.png
+sprites = [Pen:0,Select:1,Fill:2,FlipH:3,FlipV:4,Rotate:5,Clear:6,DownArrow:7]

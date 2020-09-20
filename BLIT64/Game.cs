@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Runtime;
-using static SDL2.SDL;
 
 namespace BLIT64
 {
     public sealed class Game : IDisposable
     {
-        public Palette CurrentPalette => _current_palette;
+        public Palette CurrentPalette { get; private set; }
 
         private bool _running;
         private readonly DrawSurface _draw_surface;
         private readonly Blitter _blitter;
-        private Palette _current_palette;
         private static Game _instance;
 
         public double FrameRate { get; set; } = 60;
@@ -88,7 +86,7 @@ namespace BLIT64
                 render_surface_height = display_height;
             }
             _instance = this;
-            _current_palette = Palettes.Journey;
+            CurrentPalette = Palettes.Journey;
             
             Platform.Init(title, display_width, display_height, render_surface_width, render_surface_height, fullscreen);
             Platform.OnQuit += OnClose;
@@ -134,7 +132,7 @@ namespace BLIT64
 
         public void SetPalette(Palette palette)
         {
-            _current_palette = palette;
+            CurrentPalette = palette;
         }
 
         public void Exit()
@@ -151,8 +149,8 @@ namespace BLIT64
         {
             _running = true;
 
-            var next_tick = (double)SDL_GetPerformanceCounter();
-            var delta = SDL_GetPerformanceFrequency() / FrameRate; 
+            var next_tick = (double)Platform.GetPerformanceCounter();
+            var delta = Platform.GetPerformanceFrequency() / FrameRate; 
 
             CurrentScene.Load();
 
@@ -182,12 +180,12 @@ namespace BLIT64
 
                 if (_blitter.NeedsUpdate)
                 {
-                    _blitter.UpdateDrawSurface(_current_palette);
+                    _blitter.UpdateDrawSurface(CurrentPalette);
                 }
 
                 Platform.PresentPixmap(_draw_surface);
 
-                var delay = next_tick - SDL_GetPerformanceCounter();
+                var delay = next_tick - Platform.GetPerformanceCounter();
 
                 if (delay < 0)
                 {
@@ -195,7 +193,7 @@ namespace BLIT64
                 }
                 else
                 {
-                    SDL_Delay((uint) (delay * 1000 / SDL_GetPerformanceFrequency()));
+                    Platform.Delay((uint) (delay * 1000 / Platform.GetPerformanceFrequency()));
                 }
             }
 

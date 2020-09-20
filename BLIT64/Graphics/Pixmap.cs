@@ -18,7 +18,7 @@ namespace BLIT64
 
             for (int i = 0; i < Colors.Length; ++i)
             {
-                Colors[i] = (int)CommonColors.Black;
+                Colors[i] = 0;
             }
         }
 

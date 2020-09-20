@@ -37,9 +37,28 @@ namespace BLIT64_CLI
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Error while building assets pak: {}", e.Message);
+                        Console.WriteLine($"Error while building assets pak: {e.Message}");
                         throw;
                     }
+
+                    break;
+                }
+                case "parse_bon":
+                {
+                    if (args.Length < 2)
+                    {
+                        Console.WriteLine("Invalid arguments;");
+                        Console.WriteLine("Accepted format: 'parse_bon' [path/to/bonfile]");
+                        return;
+                    }
+
+                    var bon_file = BonFileReader.Parse(args[1]);
+
+                    Console.WriteLine(bon_file.ToString());
+
+                    Console.WriteLine("Press Any Key to Close.");
+
+                    Console.ReadLine();
 
                     break;
                 }

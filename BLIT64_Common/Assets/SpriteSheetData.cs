@@ -1,4 +1,6 @@
-﻿namespace BLIT64_Common
+﻿using System.Collections.Generic;
+
+namespace BLIT64_Common
 {
     public class SpriteSheetData
     {
@@ -7,5 +9,6 @@
         public int ImageWidth;
         public int ImageHeight;
         public int CellSize;
+        public Dictionary<string, int> SpriteMap;
     }
 }

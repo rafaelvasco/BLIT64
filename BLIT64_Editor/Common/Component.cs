@@ -2,11 +2,13 @@
 
 namespace BLIT64_Editor
 {
-    public abstract class Component : EventEmitter
+    public abstract class Component
     {
         public ref Rect Area => ref _area;
 
         internal bool Hovered;
+
+        public bool Visible { get; set; } = true;
 
         protected Blitter _blitter;
         protected Rect _area;
@@ -32,17 +34,9 @@ namespace BLIT64_Editor
 
         public virtual void OnMouseEnter() {}
         public virtual void OnMouseLeave() {}
-        public abstract void Draw();
 
-        protected void DrawAreaRect(byte color)
-        {
-            _blitter.Rect(
-                _area.X,
-                _area.Y,
-                _area.W,
-                _area.H,
-                color
-            );
-        }
+        public abstract void Update();
+
+        public abstract void Draw();
     }
 }

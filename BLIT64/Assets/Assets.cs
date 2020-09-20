@@ -30,15 +30,19 @@ namespace BLIT64
             }
         }
 
-        internal static async void LoadMainAssetsPak()
+        internal static void LoadMainAssetsPak()
         {
-            await using var file_stream = File.OpenRead(Path.Combine(RootPath, "Main.pak"));
-
-            if (file_stream != null)
+            try
             {
+                using var file_stream = File.OpenRead(Path.Combine(RootPath, "Main.pak"));
+
                 var pak = AssetsPakLoader.LoadPak(file_stream);
 
                 LoadAssetsFromPak(_game_assets, pak);
+            }
+            catch (Exception)
+            {
+                // ignored
             }
         }
 
@@ -118,6 +122,15 @@ namespace BLIT64
             {
                 Id = sheet_data.Id
             };
+
+            if (sheet_data.SpriteMap.Count > 0)
+            {
+
+                foreach (var sprite_pair in sheet_data.SpriteMap)
+                {
+                    sheet.MapNamedSprite(sprite_pair.Key, sprite_pair.Value);
+                }
+            }
 
             return sheet;
         }

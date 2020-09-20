@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using BLIT64;
 using BLIT64_Common;
+using BLIT64_Editor.Common;
+using Microsoft.VisualBasic;
 
 namespace BLIT64_Editor
 {
@@ -18,9 +20,10 @@ namespace BLIT64_Editor
         private readonly List<Component> _components = new List<Component>();
 
         private SpriteSheetEditor _sprite_sheet_editor;
-        private SpriteSheetViewer _sprite_sheet_viewer;
+        private SpriteSheetNavigator _sprite_sheet_navigator;
         private ColorPicker _color_picker;
-        private Slider _source_rect_size_mult_slider;
+        private OptionsSelector _brush_size_slider;
+        private OptionsSelector _source_rect_size_mult_slider;
         private ToolSelector _tool_box;
 
         public override void Load()
@@ -30,29 +33,9 @@ namespace BLIT64_Editor
             var game_w = Game.Size.Width;
             var game_h = Game.Size.Height;
 
-            var layout_file = BonFileReader.Parse("layout.bon");
+            _layout = BonFileReader.Parse<SpriteEditorLayout>("layout.bon");
 
-            _layout = new SpriteEditorLayout()
-            {
-                ColorPickerWidth = layout_file.Main.ValueProps["colorpicker_width"].GetIntValue(),
-                EditorCursorBorder = layout_file.Main.ValueProps["editor_cursor_border"].GetIntValue(),
-                EditorPanelBorder = layout_file.Main.ValueProps["editor_panel_border"].GetIntValue(),
-                EditorSizeMultiplier = layout_file.Main.ValueProps["editor_size_multiplier"].GetIntValue(),
-                MainPanelMargin = layout_file.Main.ValueProps["main_panel_margin"].GetIntValue(),
-                SelectorHeight = layout_file.Main.ValueProps["selector_height"].GetIntValue(),
-                SelectorWidth = layout_file.Main.ValueProps["selector_width"].GetIntValue(),
-                ToolBoxWidth = layout_file.Main.ValueProps["toolbox_width"].GetIntValue(),
-                ToolBoxHeight = layout_file.Main.ValueProps["toolbox_height"].GetIntValue(),
-                ToolBoxIconsScale = layout_file.Main.ValueProps["toolbox_icons_scale"].GetFloatValue(),
-                ToolBoxIconsSpacing = layout_file.Main.ValueProps["toolbox_icons_spacing"].GetIntValue(),
-                ToolBoxMargin = layout_file.Main.ValueProps["toolbox_margin"].GetIntValue(),
-                ToolBoxPointerMargin = layout_file.Main.ValueProps["toolbox_pointer_margin"].GetIntValue(),
-                ToolBoxIconsShadowOffset = layout_file.Main.ValueProps["toolbox_icon_shadow_offset"].GetIntValue(),
-                ViewerSizeMultiplier = layout_file.Main.ValueProps["viewer_size_multiplier"].GetIntValue()
-                
-            };
-
-            var pixmap_surface_size = Game.TileSize * 16;
+            var pixmap_surface_size = Game.TileSize * _layout.EditorPixmapSizeMultiplier;
 
             _sprite_sheet = Assets.CreateSpriteSheet(pixmap_surface_size, pixmap_surface_size);
 
@@ -88,15 +71,16 @@ namespace BLIT64_Editor
                 
             ));
 
-            var sprite_viewer_size = Game.TileSize * _layout.ViewerSizeMultiplier;
+            var spritesheet_navigator_size = Game.TileSize * _layout.NavigatorSizeMultiplier;
 
-            _sprite_sheet_viewer = new SpriteSheetViewer(
+            _sprite_sheet_navigator = new SpriteSheetNavigator(
+                _layout,
                 Blitter,
                 new Rect(
-                _main_panel.X + _main_panel.W / 2 + _main_panel.W / 4 - sprite_viewer_size / 2,
-                _main_panel.Y + _main_panel.H / 2 - sprite_viewer_size / 2,
-                sprite_viewer_size,
-                sprite_viewer_size
+                _main_panel.X + _main_panel.W / 2 + _main_panel.W / 4 - spritesheet_navigator_size / 2,
+                _main_panel.Y + _main_panel.H / 2 - spritesheet_navigator_size / 2,
+                spritesheet_navigator_size,
+                spritesheet_navigator_size
             ), new Rect(0, 0, Game.TileSize, Game.TileSize));
 
             _color_picker = new ColorPicker(Blitter, new Rect(
@@ -108,9 +92,9 @@ namespace BLIT64_Editor
 
             ), _current_palette);
 
-            _source_rect_size_mult_slider = new Slider(Blitter, new Rect(
-                _sprite_sheet_viewer.Area.X + _sprite_sheet_viewer.Area.W/2 - _layout.SelectorWidth/2,
-                _sprite_sheet_viewer.Area.Y - 25,
+            _source_rect_size_mult_slider = new OptionsSelector(Blitter, new Rect(
+                _sprite_sheet_navigator.Area.X + _sprite_sheet_navigator.Area.W/2 - _layout.SelectorWidth/2,
+                _sprite_sheet_navigator.Area.Y - 25,
                 _layout.SelectorWidth,
                 _layout.SelectorHeight
                 
@@ -119,18 +103,29 @@ namespace BLIT64_Editor
                 1, 2, 4, 8
             });
 
-            
+            _brush_size_slider = new OptionsSelector(
+                Blitter, 
+                new Rect(
+                    _sprite_sheet_editor.Area.X - 50,
+                    _sprite_sheet_editor.Area.Y + _sprite_sheet_editor.Area.H/2 - 25,
+                    16,
+                    50
+                ), 
+                new []{ 1,2,4 }, 
+                Orientation.Vertical);
+
 
             _sprite_sheet_editor.SetSpriteSheet(_sprite_sheet);
-            _sprite_sheet_viewer.SetSpriteSheet(_sprite_sheet);
+            _sprite_sheet_navigator.SetSpriteSheet(_sprite_sheet);
             _color_picker.SetPalette(_current_palette);
             _sprite_sheet_editor.SetPaintColor(_color_picker.CurrentColor);
 
             _components.Add(_sprite_sheet_editor);
-            _components.Add(_sprite_sheet_viewer);
+            _components.Add(_sprite_sheet_navigator);
             _components.Add(_color_picker);
             _components.Add(_tool_box);
             _components.Add(_source_rect_size_mult_slider);
+            _components.Add(_brush_size_slider);
 
             Input.AddMouseDownListener(OnMouseDown);
             Input.AddMouseUpListener(OnMouseUp);
@@ -138,54 +133,57 @@ namespace BLIT64_Editor
             Input.AddKeyDownListener(OnKeyDown);
             Input.AddKeyUpListener(OnKeyUp);
 
-            _color_picker.OnChange += OnPickerChange;
-            _source_rect_size_mult_slider.OnChange += OnSourceRectSliderChange;
-            _sprite_sheet_editor.OnColorPick += OnColorPick;
-            _tool_box.On((int) Actions.ChangeTool, OnToolBoxChangeTool);
-            _tool_box.On((int) Actions.ModifySprite, OnToolBoxModifierTriggered);
+            TypedMessager<byte>.On(MessageCodes.ColorPicked, OnColorPick);
+
+            _source_rect_size_mult_slider.OnChange += (int value) =>
+            {
+                TypedMessager<int>.Emit(MessageCodes.SpriteNavigatorCursorSizeChanged, value);
+            };
+
+            _brush_size_slider.OnChange += (int value) =>
+            {
+                TypedMessager<int>.Emit(MessageCodes.SpriteSheetEditorBrushSizeChanged, value);
+            };
+
+            TypedMessager<int>.On(MessageCodes.ToolTriggered, OnToolActionTriggered);
 
         }
 
-        private void OnToolBoxModifierTriggered(object obj)
+        private void OnToolActionTriggered(int action)
         {
-            var modifier = (Modifiers) obj;
-
-            switch (modifier)
+            switch (action)
             {
-                case Modifiers.FlipH:
+                case (int)Tools.Pen:
+                case (int)Tools.Fill:
+                case (int)Tools.Select:
+                    SetCurrentTool((Tools)action);
+                    break;
+
+                case (int)Actions.FlipH:
                     _sprite_sheet_editor.FlipH();
                     break;
-                case Modifiers.FlipV:
+                case (int)Actions.FlipV:
                     _sprite_sheet_editor.FlipV();
                     break;
-                case Modifiers.Rotate:
+                case (int)Actions.Rotate:
                     _sprite_sheet_editor.Rotate();
                     break;
-                case Modifiers.Clear:
+                case (int)Actions.Clear:
                     _sprite_sheet_editor.ClearFrame();
                     break;
             }
         }
 
-        private void OnToolBoxChangeTool(object obj)
+
+        private void SetCurrentTool(Tools tool)
         {
-            var tool = (Tools)obj;
             _sprite_sheet_editor.SetCurrentTool(tool);
+            _brush_size_slider.Visible = _sprite_sheet_editor.CurrentTool.UseVariableBrushSize;
         }
 
         private void OnColorPick(byte color)
         {
             _color_picker.SetColor(color);
-        }
-
-        private void OnSourceRectSliderChange(int value)
-        {
-            _sprite_sheet_viewer.SetCursorSize(value);
-        }
-
-        private void OnPickerChange(byte color)
-        {
-            _sprite_sheet_editor.SetPaintColor(color);
         }
 
         private void OnKeyUp(Key key)
@@ -201,6 +199,19 @@ namespace BLIT64_Editor
             foreach (var component in _components)
             {
                 component.OnKeyDown(key);
+            }
+
+            switch (key)
+            {
+                case Key.D1:
+                    _brush_size_slider.SetValue(1);
+                    break;
+                case Key.D2:
+                    _brush_size_slider.SetValue(2);
+                    break;
+                case Key.D3:
+                    _brush_size_slider.SetValue(4);
+                    break;
             }
         }
 
@@ -240,6 +251,12 @@ namespace BLIT64_Editor
                 for (int i = _components.Count-1; i >= 0; --i)
                 {
                     var component = _components[i];
+
+                    if (!component.Visible)
+                    {
+                        continue;
+                    }
+
                     if (component.MouseOver(mouse_x, mouse_y))
                     {
                         if (_hovered_component != component)
@@ -281,6 +298,10 @@ namespace BLIT64_Editor
 
         public override void Update()
         {
+            foreach (var component in _components)
+            {
+                component.Update();
+            }
         }
 
         public override void Draw(Blitter blitter)
@@ -295,7 +316,10 @@ namespace BLIT64_Editor
 
             foreach (var component in _components)
             {
-                component.Draw();
+                if (component.Visible)
+                {
+                    component.Draw();    
+                }
             }
         }
     }

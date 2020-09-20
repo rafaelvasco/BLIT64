@@ -1,21 +1,20 @@
-﻿using System;
-using BLIT64;
+﻿using BLIT64;
 
 namespace BLIT64_Editor
 {
     public class SelectorOption
     {
-        public int Index { get; }
+        public int Value { get; }
         
         public Rect Rect { get; set; }
 
-        public SelectorOption(int index)
+        public SelectorOption(int value)
         {
-            Index = index;
+            Value = value;
         }
     }
 
-    public class Slider : Component
+    public class OptionsSelector : Component
     {
         public delegate void SelectorEvent(int value);
 
@@ -31,9 +30,9 @@ namespace BLIT64_Editor
 
         private bool _mouse_down;
 
-        private const int STEP_MARGIN = 2;
+        private const int StepMargin = 2;
 
-        public Slider(Blitter blitter, Rect area, int[] options, Orientation orientation = Orientation.Horizontal) : base(blitter, area)
+        public OptionsSelector(Blitter blitter, Rect area, int[] options, Orientation orientation = Orientation.Horizontal) : base(blitter, area)
         {
             _options = new SelectorOption[options.Length];
 
@@ -45,6 +44,18 @@ namespace BLIT64_Editor
             Orientation = orientation;
 
             UpdateGeometry();
+        }
+
+        public void SetValue(int value)
+        {
+            for (int i = 0; i < _options.Length; ++i)
+            {
+                if (_options[i].Value == value)
+                {
+                    _index = i;
+                    return;
+                }
+            }
         }
 
         public override void OnMouseDown(MouseButton button, int x, int y)
@@ -76,13 +87,12 @@ namespace BLIT64_Editor
             {
                 case Orientation.Horizontal:
 
-                    _cell_size = (int)((_area.W - ((steps + 1) * STEP_MARGIN)) / (float)steps);
-                    _area = new Rect(_area.X, _area.Y, _area.W, _cell_size);
+                    _cell_size = (int)((_area.W - ((steps + 1) * StepMargin)) / (float)steps);
 
                     for (int i = 0; i < steps; ++i)
                     {
                         _options[i].Rect = new Rect(
-                            (i * _cell_size) + (i * STEP_MARGIN) + STEP_MARGIN,
+                            (i * _cell_size) + (i * StepMargin) + StepMargin,
                             0,
                             _cell_size, 
                             _cell_size
@@ -92,19 +102,15 @@ namespace BLIT64_Editor
                     break;
                 case Orientation.Vertical:
 
-                    _area = new Rect(_area.X, _area.Y, _area.H, _area.W);
-                    _cell_size = (int)((_area.H - ((steps + 1) * STEP_MARGIN)) / (float)steps);
-                    _area = new Rect(_area.X, _area.Y, _cell_size, _area.H);
+                    _cell_size = (int)((_area.H - ((steps + 1) * StepMargin)) / (float)steps);
             
-                    var cell_size = _cell_size;
-
                     for (int i = 0; i < steps; ++i)
                     {
                         _options[i].Rect = new Rect(
                             0,
-                            (i * cell_size) + (i * STEP_MARGIN) + STEP_MARGIN,
-                            cell_size, 
-                            cell_size
+                            (i * _cell_size) + (i * StepMargin) + StepMargin,
+                            _cell_size, 
+                            _cell_size
                         );
                     }
 
@@ -114,10 +120,16 @@ namespace BLIT64_Editor
             
         }
 
+        public override void Update()
+        {
+        }
+
         public override void Draw()
         {
             var steps = _options.Length;
             var blitter = _blitter;
+
+            // Draw Background Steps
 
             for (int i = 0; i < steps; ++i)
             {
@@ -131,20 +143,24 @@ namespace BLIT64_Editor
                 );
             }
 
+            // Draw Background Bar
+
             switch (Orientation)
             {
                 case Orientation.Horizontal:
-                    blitter.Rect(_area.X + 5, _area.Y + _area.H/2, _area.W - 10, 2, Palette.WhiteColor);
-                    blitter.RectBorder(_area.X + 5, _area.Y + _area.H/2, _area.W - 10, 2, Palette.BlackColor, 2);
+                    blitter.Rect(_area.X + 5, _area.Y + _area.H/2 - 2, _area.W - 10, 2, Palette.WhiteColor);
+                    blitter.RectBorder(_area.X + 5, _area.Y + _area.H/2 - 2, _area.W - 10, 2, Palette.BlackColor, 2);
                     break;
                 case Orientation.Vertical:
-                    blitter.Rect(_area.X + _area.W/2, _area.Y + 5, 2, _area.H - 10, Palette.WhiteColor);
-                    blitter.RectBorder(_area.X + _area.W/2, _area.Y + 5, 2, _area.H - 10, Palette.WhiteColor, 2);
+                    blitter.Rect(_area.X + _area.W/2 - 2  , _area.Y + 5, 2, _area.H - 10, Palette.WhiteColor);
+                    blitter.RectBorder(_area.X + _area.W/2 - 2  , _area.Y + 5, 2, _area.H - 10, Palette.BlackColor, 2);
                     break;
             }
 
             var current_option_rect = _options[_index].Rect.Deflate(3);
             
+            // Draw Slider
+
             blitter.Rect(
                 _area.X + current_option_rect.X,
                 _area.Y + current_option_rect.Y,
@@ -172,7 +188,7 @@ namespace BLIT64_Editor
                         var option = _options[i];
                         if (!option.Rect.Contains(x, 0)) continue;
                         _index = i;
-                        OnChange?.Invoke(_options[_index].Index);
+                        OnChange?.Invoke(_options[_index].Value);
                         break;
                     }
                     break;
@@ -182,7 +198,7 @@ namespace BLIT64_Editor
                         var option = _options[i];
                         if (!option.Rect.Contains(0, y)) continue;
                         _index = i;
-                        OnChange?.Invoke(_options[_index].Index);
+                        OnChange?.Invoke(_options[_index].Value);
                         break;
                     }
                     break;

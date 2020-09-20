@@ -5,11 +5,27 @@ namespace BLIT64_Editor
 {
     public class FillTool : Tool
     {
+
+        public FillTool()
+        {
+            _brush_size = 1;
+        }
+
+        public override int BrushSize
+        {
+            get => _brush_size;
+            set
+            {
+
+            }
+        }
+        public override bool UseVariableBrushSize => false;
+
         public override void OnMouseDown(ToolActionParams @params)
         {
             var blitter = @params.Blitter;
-            var x = @params.X;
-            var y = @params.Y;
+            var x = @params.PaintX;
+            var y = @params.PaintY;
             var button = @params.MouseButton;
             var paint_color = @params.PaintColor;
             var sheet = @params.SpriteSheet;
@@ -27,6 +43,14 @@ namespace BLIT64_Editor
         }
 
         public override void OnMouseMove(ToolActionParams @params)
+        {
+        }
+
+        public override void OnKeyDown(Key key, ToolActionParams @params)
+        {
+        }
+
+        public override void Update(ToolActionParams @params)
         {
         }
     }

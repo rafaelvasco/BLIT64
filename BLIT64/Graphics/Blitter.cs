@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SDL2;
 
 namespace BLIT64
 {
@@ -22,9 +23,9 @@ namespace BLIT64
             _default_font = Assets.GetEmbedded<Font>("default_font");
         }
 
-        public void Clip(int x=0, int y=0, int w=0, int h=0)
+        public void Clip(Rect rect)
         {
-            _clip_rect = new Rect(x, y, w, h);
+            _clip_rect = rect;
             if (_clip_rect.IsEmpty)
             {
                 _clip_rect = new Rect(0, 0, _current_blit_surface.Width, _current_blit_surface.Height);
@@ -34,8 +35,13 @@ namespace BLIT64
                 _clip_rect = new Rect(0, 0, _current_blit_surface.Width, _current_blit_surface.Height);
             }
         }
+        
+        public void Clip(int x=0, int y=0, int w=0, int h=0)
+        {
+            Clip(new Rect(x, y, w, h));
+        }
 
-        public void Clear(byte color = Palette.BlackColor)
+        public void Clear(byte color = Palette.TransparentColor)
         {
             var clip_rect = _clip_rect;
            
@@ -127,6 +133,119 @@ namespace BLIT64
                 {
                     var idx = i + j * sw;
                     colors[idx] = color;
+                }
+            }
+        }
+
+        public void RectBorderDashed(
+            int x, 
+            int y, 
+            int w, 
+            int h, 
+            byte color, 
+            int line_size, 
+            int dash_offset, 
+            int dash_size)
+        {
+            dash_size = Math.Max(1, dash_size);
+
+            NeedsUpdate = true;
+            
+            var sw = _current_blit_surface.Width;
+            var colors = _current_blit_surface.Colors;
+            var clip_rect = _clip_rect;
+
+            var clip_right = clip_rect.X + _clip_rect.W;
+            var clip_bottom = _clip_rect.Y + _clip_rect.H;
+
+            var min_x1 = Math.Max(x, _clip_rect.Left);
+            var max_x1 = Math.Min(x + w, clip_right);
+            var min_y1 = Math.Max(y - line_size, _clip_rect.Top);
+            var max_y1 = Math.Min(y + h + line_size, clip_bottom);
+
+            // Top Side
+
+            byte paint_color;
+
+            if (y > _clip_rect.Y)
+            {
+                var min_x = min_x1;
+                var max_x = max_x1;
+                var min_y = min_y1;
+                var max_y = Math.Min(y, clip_bottom);
+
+                for (var i = min_x; i < max_x; ++i)
+                {
+                    paint_color = (i - dash_offset) % dash_size == 0 ? Palette.TransparentColor : color;
+
+                    for (var j = min_y; j < max_y; ++j)
+                    {
+                        var idx = i + j * sw;
+                        colors[idx] = paint_color;
+                    }
+                }
+            }
+
+            // Bottom Side
+
+            if (y + h < clip_bottom)
+            {
+                var min_x = min_x1;
+                var max_x = max_x1;
+                var min_y = Math.Max(y + h, _clip_rect.Top);
+                var max_y = max_y1;
+
+                for (var i = min_x; i < max_x; ++i)
+                {
+                    paint_color = (i + dash_offset) % dash_size == 0 ? Palette.TransparentColor : color;
+
+                    for (var j = min_y; j < max_y; ++j)
+                    {
+                        var idx = i + j * sw;
+                        colors[idx] = paint_color;
+                    }
+                }
+            }
+
+            // Left Side
+
+            if (x  > _clip_rect.X)
+            {
+                var min_x = Math.Max(x - line_size, _clip_rect.Left);
+                var max_x = Math.Min(x, clip_right);
+                var min_y = min_y1;
+                var max_y = max_y1;
+
+                for (var i = min_x; i < max_x; ++i)
+                {
+                    for (var j = min_y; j < max_y; ++j)
+                    {
+                        paint_color = (j + dash_offset) % dash_size == 0 ? Palette.TransparentColor : color;
+
+                        var idx = i + j * sw;
+                        colors[idx] = paint_color;
+                    }
+                }
+            }
+
+            // Right Side
+
+            if (x + w < clip_right)
+            {
+                var min_x = Math.Max(x + w, _clip_rect.Left);
+                var max_x = Math.Min(x + w + line_size, clip_right);
+                var min_y = min_y1;
+                var max_y = max_y1;
+
+                for (var i = min_x; i < max_x; ++i)
+                {
+                    for (var j = min_y; j < max_y; ++j)
+                    {
+                        paint_color = (j - dash_offset) % dash_size == 0 ? Palette.TransparentColor : color;
+
+                        var idx = i + j * sw;
+                        colors[idx] = paint_color;
+                    }
                 }
             }
         }
@@ -223,60 +342,7 @@ namespace BLIT64
                 }
             }
         }
-
-        public void Line2(int x1, int y1, int x2, int y2, int size, byte color)
-        {
-            NeedsUpdate = true;
-
-            int dx = Math.Abs(x2 - x1), sx = x1 < x2 ? size : -size;
-            int dy = Math.Abs(y2 - y1), sy = y1 < y2 ? size : -size;
-            int err = (dx > dy ? dx : -dy) / 2, e2;
-            var clip_rect = _clip_rect;
-
-            var sw = _current_blit_surface.Width;
-            var colors = _current_blit_surface.Colors;
-
-            while (true)
-            {
-                var min_x = Math.Max(x1, clip_rect.Left);
-                var min_y = Math.Max(y1, clip_rect.Top);
-                var max_x = Math.Min((x1 + size), clip_rect.Right);
-                var max_y = Math.Min((y1 + size), clip_rect.Bottom);
-
-                for (var i = min_x; i < max_x; ++i)
-                {
-                    for (var j = min_y; j < max_y; j++)
-                    {
-                        var idx = i + j * sw;
-
-                        unchecked
-                        {
-                            colors[idx] = color;    
-                        }
-                    }
-                }
-
-                if (x1 == x2 && y1 == y2)
-                {
-                    break;
-                }
-
-                e2 = err;
-
-                if (e2 > -dx)
-                {
-                    err -= dy;
-                    x1 += sx;
-                }
-
-                if (e2 < dy)
-                {
-                    err += dx;
-                    y1 += sy;
-                }
-            }
-        }
-
+        
         public void Line(int x1, int y1, int x2, int y2, int size, byte color)
         {
             NeedsUpdate = true;
@@ -286,21 +352,22 @@ namespace BLIT64
             var sx = x1 < x2 ? size : -size;
             var sy = y1 < y2 ? size : -size;
             var err = (dx > dy ? dx : -dy) / 2;
+            int e2;
             var sw = _current_blit_surface.Width;
             var colors = _current_blit_surface.Colors;
             var clip_rect = _clip_rect;
 
             while (true)
             {
-                var min_x = Math.Max(x1, clip_rect.Left);
-                var min_y = Math.Max(y1, clip_rect.Top);
-                var max_x = Math.Min((x1 + size), clip_rect.Right);
-                var max_y = Math.Min((y1 + size), clip_rect.Bottom);
-
-                for (var i = min_x; i < max_x; ++i)
+                for (var i = x1; i < x1+size; ++i)
                 {
-                    for (var j = min_y; j < max_y; j++)
+                    for (var j = y1; j < y1+size; ++j)
                     {
+                        if (i < clip_rect.Left || i > clip_rect.Right-1 || j < clip_rect.Top || j > clip_rect.Bottom-1)
+                        {
+                            continue;
+                        }
+
                         var idx = i + j * sw;
 
                         unchecked
@@ -316,7 +383,7 @@ namespace BLIT64
                     break;
                 }
 
-                var e2 = err;
+                e2 = err;
 
                 if (e2 > -dx)
                 {
@@ -434,7 +501,7 @@ namespace BLIT64
         {
             var colors = _current_blit_surface.Colors;
             var sh = _current_blit_surface.Height;
-            var col = new byte[src_h];
+            var col = new byte[src_w * src_h];
 
             for (var x = src_x; x < src_x + src_w; ++x)
             {
@@ -454,10 +521,46 @@ namespace BLIT64
             }
         }
 
+
+        public unsafe void Rotate902(int src_x, int src_y, int src_w, int src_h, int target_x=0, int target_y=0, int target_w=0, int target_h=0)
+        {
+            if (target_w == 0 || target_h == 0)
+            {
+                target_x = src_x;
+                target_y = src_y;
+                target_w = src_w;
+                target_h = src_h;
+            }
+
+            var colors = _current_blit_surface.Colors;
+            var sw = _current_blit_surface.Width;
+            var aux_colors_buffer = stackalloc byte[src_w * src_h];
+            var aux_colors = new Span<byte>(aux_colors_buffer, src_w * src_h);
+
+            int rows = src_h;
+            int cols = src_w;
+
+            for (int r = 0;  r < rows;  ++r)
+            {
+                for (int c = 0; c < cols; ++c)
+                {
+                    aux_colors[(c*rows) + (rows-r-1)] = colors[(r+src_y) * sw + (c+src_x)];
+                }
+            }
+
+            for (int j = target_y, c = 0; j < target_y+target_h; ++j)
+            {
+                for (int i = target_x; i < target_x+target_w; ++i)
+                {
+                    colors[i + j * sw] = aux_colors[c++];
+                }
+            }
+        }
+
         public void Pixmap(Pixmap pixmap, 
             int x, 
             int y, 
-            ref Rect src_rect, 
+            Rect src_rect, 
             float width = -1,
             float height = -1,
             byte color_key = Palette.TransparentColor, 
@@ -635,15 +738,15 @@ namespace BLIT64
             int height = 1
             )
         {
-            ref var src_rect = ref BLIT64.Rect.Empty;
+            Rect src_rect;
 
             if (width < 2 && height < 2)
             {
-                src_rect = ref sprite_sheet[id];
+                src_rect = sprite_sheet[id];
             }
             else
             {
-                ref var single_cell_src_rect = ref sprite_sheet[id];
+                ref readonly var single_cell_src_rect = ref sprite_sheet[id];
 
                 src_rect = new Rect(
                     single_cell_src_rect.X, 
@@ -656,7 +759,7 @@ namespace BLIT64
             Pixmap(
                 sprite_sheet,
                 x, y, 
-                ref src_rect,
+                src_rect,
                 width:src_rect.W * scale,
                 height:src_rect.H * scale,
                 color_key,

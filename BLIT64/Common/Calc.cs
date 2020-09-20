@@ -44,16 +44,5 @@ namespace BLIT64
 
             return (int) (Calc.FastFloorToInt(value / increment) * increment);
         }
-
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //public static (int X, int Y) ClampPointToRect((int X, int Y) point, ref Rect rect)
-        //{
-        //    var max_x = rect.X + rect.W;
-        //    var min_x = rect.X;
-        //    var max_y = rect.Y + rect.H;
-        //    var min_y = rect.Y;
-        //    var (px, py) = point;
-        //    return ((px > max_x) ? max_x : ((px < min_x) ? min_x : px), (py > max_y) ? max_y : ((py < min_y) ? min_y : py));
-        //}
     }
 }

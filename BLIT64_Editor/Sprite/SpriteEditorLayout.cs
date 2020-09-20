@@ -11,7 +11,7 @@ namespace BLIT64_Editor
 
         public int EditorPanelBorder { get; set; }
 
-        public int ViewerSizeMultiplier { get; set; }
+        public int NavigatorSizeMultiplier { get; set; }
 
         public int ToolBoxWidth { get; set; }
 
@@ -32,5 +32,10 @@ namespace BLIT64_Editor
         public int SelectorWidth { get; set; }
 
         public int SelectorHeight { get; set; }
+
+        public int NavigatorPanelBorder { get; set; }
+
+        public int EditorPixmapSizeMultiplier { get; set; }
+
     }
 }

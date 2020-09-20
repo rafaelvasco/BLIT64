@@ -1,4 +1,5 @@
 ﻿using BLIT64;
+using BLIT64_Editor.Common;
 
 namespace BLIT64_Editor
 {
@@ -16,10 +17,6 @@ namespace BLIT64_Editor
 
     public class ColorPicker : Component
     {
-        public delegate void ColorPickerEvent(byte color);
-
-        public event ColorPickerEvent OnChange = delegate(byte color) {};
-
         public byte CurrentColor { get; private set; } = 1;
 
         public static readonly int HorizontalCells = 16;
@@ -47,7 +44,7 @@ namespace BLIT64_Editor
         public void SetColor(byte color)
         {
             CurrentColor = color;
-            OnChange.Invoke(color);
+            TypedMessager<byte>.Emit(MessageCodes.ColorSelected, color);
         }
 
         public override void OnMouseDown(MouseButton button, int x, int y)
@@ -86,6 +83,10 @@ namespace BLIT64_Editor
                     break;
                 }
             }
+        }
+
+        public override void Update()
+        {
         }
 
         public override void Draw()

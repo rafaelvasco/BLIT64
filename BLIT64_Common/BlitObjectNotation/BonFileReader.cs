@@ -1,4 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -12,13 +16,143 @@ namespace BLIT64_Common
         private const char ArrayStart = '[';
         private const char ArrayEnd = ']';
 
+        public static T Parse<T>(string bon_file_path) where T : new()
+        {
+            static void ProcessObjectProperties<T1>(object obj, BonFile bon_file)
+            {
+                var obj_type = obj.GetType();
+
+                var section_name = obj.GetType() == typeof(T1) ? "Root" : obj.GetType().Name;
+
+                foreach (var property_info in obj_type.GetProperties())
+                {
+                    if ((property_info.PropertyType == typeof(string)) ||
+                        (property_info.PropertyType == typeof(int)) || (
+                            property_info.PropertyType == typeof(float)))
+                    {
+                        var matching_property = GetMatchingSingleValueProperty(bon_file, section_name, property_info.Name);
+
+                        if (matching_property != null)
+                        {
+                            SetSingleValueProperty(obj, property_info, matching_property);
+                        }
+                    }
+                    else if (property_info.PropertyType.IsGenericType && property_info.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                    {
+                        var matching_property = GetMatchingListValueProperty(bon_file, section_name, property_info.Name);
+
+                        if (matching_property != null)
+                        {
+                            SetListValueProperty(obj, property_info, matching_property);
+                        }
+                    }
+                    else if (property_info.PropertyType.IsClass && section_name == "root")
+                    {
+                        property_info.SetValue(obj, Activator.CreateInstance(property_info.PropertyType));
+                        ProcessObjectProperties<T1>(property_info.GetValue(obj), bon_file);
+                    }
+                }
+            }
+
+            static string NormalizePropertyName(string value)
+            {
+                return value.Replace("_", "").ToLower();
+            }
+
+            static SingleValueProp GetMatchingSingleValueProperty(BonFile file, string section_name, string property_name)
+            {
+                foreach (var value_props in file.Sections[section_name].ValueProps)
+                {
+                    var normalized_file_property_name = NormalizePropertyName(value_props.Key);
+                    var normalized_param_property_name = NormalizePropertyName(property_name);
+
+                    if (normalized_file_property_name == normalized_param_property_name)
+                    {
+                        return value_props.Value;
+                    }
+                }
+
+                return null;
+            }
+
+            static ListValueProp GetMatchingListValueProperty(BonFile file, string section_name, string property_name)
+            {
+                foreach (var value_props in file.Sections[section_name].ListProps)
+                {
+                    if (NormalizePropertyName(value_props.Key) == NormalizePropertyName(property_name))
+                    {
+                        return value_props.Value;
+                    }
+                }
+
+                return null;
+            }
+
+            static void SetSingleValueProperty(
+                object target_object, 
+                PropertyInfo target_object_prop_info,
+                SingleValueProp bon_file_prop_value)
+            {
+                if (target_object_prop_info.PropertyType == typeof(string))
+                {
+                    target_object_prop_info.SetValue(target_object, bon_file_prop_value.GetValue());    
+                }
+                else if (target_object_prop_info.PropertyType == typeof(int))
+                {
+                    target_object_prop_info.SetValue(target_object, bon_file_prop_value.GetIntValue());
+                }
+                else if (target_object_prop_info.PropertyType == typeof(float))
+                {
+                    target_object_prop_info.SetValue(target_object, bon_file_prop_value.GetFloatValue());
+                }
+            }
+
+            static void SetListValueProperty(
+                object target_object, 
+                PropertyInfo target_object_prop_info,
+                ListValueProp bon_file_prop_value
+            )
+            {
+                var target_list_generic_type = target_object_prop_info.PropertyType.GetGenericArguments()[0];
+
+                var constructed_result_list_type = typeof(List<>).MakeGenericType(target_list_generic_type);
+                var result_values = (IList) Activator.CreateInstance(constructed_result_list_type);
+
+                foreach (var value in bon_file_prop_value.Items)
+                {
+                    try
+                    {
+                        var converted_value = Convert.ChangeType(value, target_list_generic_type);
+                        result_values.Add(converted_value);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine($"Could not convert from source string type in bon list property to target list of target type: {target_list_generic_type}");
+                        throw;
+                    }
+                            
+                }
+
+                target_object_prop_info.SetValue(target_object, result_values);
+            }
+
+            var bon_file = Parse(bon_file_path);
+
+            var result = new T();
+
+            ProcessObjectProperties<T>(result, bon_file);
+
+            return result;
+        }
+
         public static BonFile Parse(string bon_file_path)
         {
             var lines = File.ReadAllLines(bon_file_path);
             var length = lines.Length;
             var props_file = new BonFile();
-            string last_section_key = null;
             var line_index = 0;
+
+            var last_section_key = string.Empty;
 
             while (line_index < length)
             {
@@ -39,21 +173,21 @@ namespace BLIT64_Common
                         last_section_key = section_name;
                         var section = new BonFileSection(last_section_key);
                         props_file.Sections.Add(last_section_key, section);
-                        if (props_file.Main == null)
-                        {
-                            props_file.Main = section;
-                        }
                     }
                 }
                 else
                 {
-                    if (last_section_key == null)
+                    if (!string.IsNullOrEmpty(last_section_key))
                     {
-                        ++line_index;
-                        continue;
+                        ParseKeyValueLine(props_file, last_section_key, line);
                     }
-
-                    ParseKeyValueLine(props_file, last_section_key, line);
+                    else
+                    {
+                        props_file.Sections.Add("Root", new BonFileSection("Root"));
+                        last_section_key = "Root";
+                        ParseKeyValueLine(props_file, last_section_key, line);
+                    }
+                    
                 }
 
                 ++line_index;
@@ -69,7 +203,7 @@ namespace BLIT64_Common
             if (line_split.Length == 2)
             {
                 var prop_key = line_split[0].Trim();
-                var prop_value = line_split[1].Trim();
+                var prop_value = NormalizeBonFilePropValueString(line_split[1]);
 
                 switch (prop_value[0])
                 {
@@ -86,10 +220,12 @@ namespace BLIT64_Common
                         break;
                     }
                 }
-
-                
-
             }
+        }
+
+        private static string NormalizeBonFilePropValueString(string value)
+        {
+            return value.Trim().Replace("'", "").Replace("\"", "");
         }
 
         private static ListValueProp ParsePropValueList(string value)
@@ -102,13 +238,11 @@ namespace BLIT64_Common
 
             foreach (var s in str_plit)
             {
-                var trimmed = s.Trim();
+                var processed_value = NormalizeBonFilePropValueString(s);
 
-                if (trimmed.Length > 0)
+                if (processed_value.Length > 0)
                 {
-                    var prop_value = new SingleValueProp(s.Trim());
-
-                    list_prop.Items.Add(prop_value);
+                    list_prop.Items.Add(processed_value);
                 }
             }
 
