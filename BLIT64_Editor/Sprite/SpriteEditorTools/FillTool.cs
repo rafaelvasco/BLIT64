@@ -35,7 +35,7 @@ namespace BLIT64_Editor
             blitter.Clip(source_rect.X, source_rect.Y, source_rect.W, source_rect.H);
             blitter.FloodFill(x, y, button == MouseButton.Left ? paint_color : (byte)0);
             blitter.Clip();
-            blitter.ResetSurface();
+            blitter.SetSurface(null);
         }
 
         public override void OnMouseUp(ToolActionParams @params)

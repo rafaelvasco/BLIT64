@@ -13,6 +13,10 @@ namespace Demo
         private byte col;
 
 
+        public override void Load()
+        {
+        }
+
         public override void Update()
         {
             x += dx;

@@ -123,7 +123,7 @@ namespace BLIT64_Editor
 
             _blitter.Clip();
 
-            _blitter.ResetSurface();
+            _blitter.SetSurface(null);
         }
 
         public void ClearAll()
@@ -132,7 +132,7 @@ namespace BLIT64_Editor
 
             _blitter.Clear();
 
-            _blitter.ResetSurface();
+            _blitter.SetSurface(null);
         }
 
         public void Rotate()
@@ -154,7 +154,7 @@ namespace BLIT64_Editor
 
                 _blitter.SetSurface(_select_surface);
 
-                _blitter.Rotate902(
+                _blitter.Rotate90(
                     global_source_rect.X, 
                     global_source_rect.Y ,
                     global_source_rect.W, 
@@ -164,11 +164,11 @@ namespace BLIT64_Editor
                     target_rect.W,
                     target_rect.H);
 
-                _blitter.ResetSurface();
+                _blitter.SetSurface(null);
             }
             else
             {
-                _blitter.Rotate902(
+                _blitter.Rotate90(
                     global_source_rect.X, 
                     global_source_rect.Y ,
                     global_source_rect.W, 
@@ -176,7 +176,7 @@ namespace BLIT64_Editor
             }
            
 
-            _blitter.ResetSurface();
+            _blitter.SetSurface(null);
             
         }
 
@@ -232,7 +232,7 @@ namespace BLIT64_Editor
 
             _blitter.Pixmap(CurrentSpritesheet, region.X, region.Y, region);
 
-            _blitter.ResetSurface();
+            _blitter.SetSurface(null);
 
             _blitter.SetSurface(CurrentSpritesheet);
 
@@ -242,7 +242,7 @@ namespace BLIT64_Editor
 
             _blitter.Clip();
 
-            _blitter.ResetSurface();
+            _blitter.SetSurface(null);
 
             _selection_surface_filled = true;
         }
@@ -263,13 +263,13 @@ namespace BLIT64_Editor
 
             _blitter.Pixmap(_select_surface, global_x, global_y, global_select_rect);
 
-            _blitter.ResetSurface();
+            _blitter.SetSurface(null);
 
             _blitter.SetSurface(_select_surface);
 
             _blitter.Clear();
 
-            _blitter.ResetSurface();
+            _blitter.SetSurface(null);
 
             _selection_surface_filled = false;
 
@@ -290,7 +290,7 @@ namespace BLIT64_Editor
                     global_source_rect.H
                 );
 
-                _blitter.ResetSurface();
+                _blitter.SetSurface(null);
             }
             else
             {
@@ -309,7 +309,7 @@ namespace BLIT64_Editor
                     global_source_rect.H
                 );
 
-                _blitter.ResetSurface();
+                _blitter.SetSurface(null);
                 
             }
             
@@ -330,7 +330,7 @@ namespace BLIT64_Editor
                     global_source_rect.H
                 );
 
-                _blitter.ResetSurface();
+                _blitter.SetSurface(null);
             }
             else
             {
@@ -349,7 +349,7 @@ namespace BLIT64_Editor
                     global_source_rect.H
                 );
 
-                _blitter.ResetSurface();
+                _blitter.SetSurface(null);
                 
             }
         }
@@ -592,7 +592,7 @@ namespace BLIT64_Editor
                     _select_height * final_scale
                 );
 
-                blitter.ResetSurface();
+                blitter.SetSurface(null);
 
             }
 
@@ -645,7 +645,7 @@ namespace BLIT64_Editor
     
             _blitter.Clear();
 
-            _blitter.ResetSurface();
+            _blitter.SetSurface(null);
 
             if (_selection_surface_filled)
             {

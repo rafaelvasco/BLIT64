@@ -2,7 +2,6 @@
 using BLIT64;
 using BLIT64_Common;
 using BLIT64_Editor.Common;
-using Microsoft.VisualBasic;
 
 namespace BLIT64_Editor
 {
@@ -107,11 +106,11 @@ namespace BLIT64_Editor
                 Blitter, 
                 new Rect(
                     _sprite_sheet_editor.Area.X - 50,
-                    _sprite_sheet_editor.Area.Y + _sprite_sheet_editor.Area.H/2 - 25,
+                    _sprite_sheet_editor.Area.Y + _sprite_sheet_editor.Area.H/2 - 33,
                     16,
-                    50
+                    67
                 ), 
-                new []{ 1,2,4 }, 
+                new []{ 1,2,4,8 }, 
                 Orientation.Vertical);
 
 

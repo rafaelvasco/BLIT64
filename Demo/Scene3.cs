@@ -10,6 +10,10 @@ namespace Demo
         private float t;
         private int size = 350;
 
+        public override void Load()
+        {
+        }
+
         public override void Update()
         {
             t += 0.5f;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using SDL2;
 
 namespace BLIT64
 {
@@ -8,11 +7,13 @@ namespace BLIT64
     {
         internal bool NeedsUpdate { get; set; }
 
-        private Pixmap _current_blit_surface;
-        private Rect _clip_rect;
         private readonly Pixmap _blit_surface;
         private readonly DrawSurface _draw_surface_ref;
         private readonly Font _default_font;
+        private Font _current_font;
+        private Pixmap _current_blit_surface;
+        private Rect _clip_rect;
+        
 
         internal Blitter(DrawSurface draw_surface)
         {
@@ -21,6 +22,7 @@ namespace BLIT64
             _current_blit_surface = _blit_surface;
             _clip_rect = new Rect(0, 0, draw_surface.Width, draw_surface.Height);
             _default_font = Assets.GetEmbedded<Font>("default_font");
+            _current_font = _default_font;
         }
 
         public void Clip(Rect rect)
@@ -52,50 +54,13 @@ namespace BLIT64
 
         public void SetSurface(Pixmap pixmap)
         {
-            _current_blit_surface = pixmap;
+            _current_blit_surface = pixmap ?? _blit_surface;
             _clip_rect = new Rect(0, 0, _current_blit_surface.Width, _current_blit_surface.Height);
         }
 
-        public void ResetSurface()
+        public void SetFont(Font font)
         {
-            SetSurface(_blit_surface);
-        }
-
-        public void UpdateDrawSurface(Palette palette)
-        {
-            NeedsUpdate = false;
-
-            var rgba_surface = _draw_surface_ref.DataPtr;
-
-            unsafe
-            {
-                var p = (byte*)rgba_surface;
-                var rgb_surface_idx = 0;
-                var color_idxs = _current_blit_surface.Colors;
-
-                for (int i = 0; i < color_idxs.Length; ++i)
-                {
-                    var color_idx = color_idxs[i];
-
-                    if (color_idx > 0)
-                    {
-                        var rgb_color = palette.Map(color_idx);
-                        *(p + rgb_surface_idx) = rgb_color.R;
-                        *(p + rgb_surface_idx + 1) = rgb_color.G;
-                        *(p + rgb_surface_idx + 2) = rgb_color.B;
-                        
-                    }
-                    else
-                    {
-                        *(p + rgb_surface_idx) = 0;
-                        *(p + rgb_surface_idx + 1) = 0;
-                        *(p + rgb_surface_idx + 2) = 0;
-                        *(p + rgb_surface_idx + 3) = 0;
-                    }
-                    rgb_surface_idx += 4;
-                    
-                }
-            }
+            _current_font = font ?? _default_font;
         }
 
         public void Pixel(int x, int y, byte color)
@@ -359,6 +324,11 @@ namespace BLIT64
 
             while (true)
             {
+                if ((x1 >= x2 && y1 >= y2))
+                {
+                    break;
+                }
+
                 for (var i = x1; i < x1+size; ++i)
                 {
                     for (var j = y1; j < y1+size; ++j)
@@ -370,17 +340,8 @@ namespace BLIT64
 
                         var idx = i + j * sw;
 
-                        unchecked
-                        {
-                            colors[idx] = color;    
-                        }
-                        
+                        colors[idx] = color;    
                     }
-                }
-
-                if ((x1 == x2 && y1 == y2))
-                {
-                    break;
                 }
 
                 e2 = err;
@@ -395,6 +356,34 @@ namespace BLIT64
                 {
                     err += dx;
                     y1 += sy;
+                }
+            }
+        }
+
+        public void Circle(int center_x, int center_y, int radius, byte color)
+        {
+            NeedsUpdate = true;
+
+            int radius_sqr = radius * radius;
+
+            var colors = _current_blit_surface.Colors;
+            var clip_rect = _clip_rect;
+            var sw = _current_blit_surface.Width;
+
+            for (int x = -radius; x < radius; ++x)
+            {
+                int height = (int)Math.Sqrt(radius_sqr - x * x);
+
+                for (int _y = -height; _y < height; ++_y)
+                {
+                    if (!clip_rect.Contains(center_x+x, center_y+_y))
+                    {
+                        continue;
+                    }
+
+                    var idx = (center_x+x) + (center_y+_y) * sw;
+
+                    colors[idx] = color;    
                 }
             }
         }
@@ -521,8 +510,7 @@ namespace BLIT64
             }
         }
 
-
-        public unsafe void Rotate902(int src_x, int src_y, int src_w, int src_h, int target_x=0, int target_y=0, int target_w=0, int target_h=0)
+        public unsafe void Rotate90(int src_x, int src_y, int src_w, int src_h, int target_x=0, int target_y=0, int target_w=0, int target_h=0)
         {
             if (target_w == 0 || target_h == 0)
             {
@@ -658,17 +646,17 @@ namespace BLIT64
         {
             NeedsUpdate = true;
 
-            var default_font = _default_font;
+            var font = _current_font;
 
-            var glyph_size = default_font.GlyphSize;
+            var glyph_size = font.GlyphSize;
             var scaled_glyph_size = glyph_size * scale;
             
 
             var sw = _current_blit_surface.Width;
-            var pw = default_font.Width;
-            var count_glyphs = default_font.Width / glyph_size;
+            var pw = font.Width;
+            var count_glyphs = font.Width / glyph_size;
             var surface_colors = _current_blit_surface.Colors;
-            var font_colors = default_font.Colors;
+            var font_colors = font.Colors;
             var clip_rect = _clip_rect;
 
             for (int ci = 0; ci < text.Length; ci++)
@@ -766,6 +754,43 @@ namespace BLIT64
                 tint,
                 flip
             );
+        }
+
+        internal void UpdateDrawSurface(Palette palette)
+        {
+            NeedsUpdate = false;
+
+            var rgba_surface = _draw_surface_ref.DataPtr;
+
+            unsafe
+            {
+                var p = (byte*)rgba_surface;
+                var rgb_surface_idx = 0;
+                var color_idxs = _current_blit_surface.Colors;
+
+                for (int i = 0; i < color_idxs.Length; ++i)
+                {
+                    var color_idx = color_idxs[i];
+
+                    if (color_idx > 0)
+                    {
+                        var rgb_color = palette.Map(color_idx);
+                        *(p + rgb_surface_idx) = rgb_color.R;
+                        *(p + rgb_surface_idx + 1) = rgb_color.G;
+                        *(p + rgb_surface_idx + 2) = rgb_color.B;
+                        
+                    }
+                    else
+                    {
+                        *(p + rgb_surface_idx) = 0;
+                        *(p + rgb_surface_idx + 1) = 0;
+                        *(p + rgb_surface_idx + 2) = 0;
+                        *(p + rgb_surface_idx + 3) = 0;
+                    }
+                    rgb_surface_idx += 4;
+                    
+                }
+            }
         }
 
     }

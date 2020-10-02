@@ -1,4 +1,7 @@
 ﻿
+using System;
+using System.Collections.Generic;
+
 namespace BLIT64
 {
     public class Pixmap : GameAsset

@@ -7,9 +7,10 @@ namespace BLIT64
     {
         public Palette CurrentPalette { get; private set; }
 
+        public Blitter Blitter { get; private set; }
+
         private bool _running;
         private readonly DrawSurface _draw_surface;
-        private readonly Blitter _blitter;
         private static Game _instance;
 
         public double FrameRate { get; set; } = 60;
@@ -98,7 +99,7 @@ namespace BLIT64
 
             _draw_surface = Assets.CreateRenderSurface(render_surface_width, render_surface_height);
             
-            _blitter = new Blitter(_draw_surface);
+            Blitter = new Blitter(_draw_surface);
 
             Input.Init();
 
@@ -119,7 +120,7 @@ namespace BLIT64
             if (scene != null)
             {
                 scene.Game = this;
-                scene.Blitter = _blitter;
+                scene.Blitter = Blitter;
                 CurrentScene = scene;
             }
 
@@ -165,22 +166,15 @@ namespace BLIT64
                     ToggleFullscreen();
                 }
 
-#if DEBUG
-                if (Input.KeyPressed(Key.Escape))
-                {
-                    Exit();
-                }
-#endif
-
                 next_tick += delta;
 
                 CurrentScene.Update();
 
-                CurrentScene.Draw(_blitter);
+                CurrentScene.Draw(Blitter);
 
-                if (_blitter.NeedsUpdate)
+                if (Blitter.NeedsUpdate)
                 {
-                    _blitter.UpdateDrawSurface(CurrentPalette);
+                    Blitter.UpdateDrawSurface(CurrentPalette);
                 }
 
                 Platform.PresentPixmap(_draw_surface);

@@ -27,7 +27,7 @@ namespace Demo
             Blitter.Rect(0, 0, 8, 8, Palette.WhiteColor);
             Blitter.Rect(8, 8, 8, 8, Palette.WhiteColor);
 
-            Blitter.ResetSurface();
+            Blitter.SetSurface(null);
 
 
         }

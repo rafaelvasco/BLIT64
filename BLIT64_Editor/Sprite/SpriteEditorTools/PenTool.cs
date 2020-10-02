@@ -83,7 +83,7 @@ namespace BLIT64_Editor
 
             
             blitter.Clip();
-            blitter.ResetSurface();
+            blitter.SetSurface(null);
         }
     }
 }
