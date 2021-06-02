@@ -3,8 +3,10 @@ using System.Runtime.InteropServices;
 
 namespace BLIT64
 {
-    internal class DrawSurface : GameAsset
+    internal class RenderSurface : GameAsset
     {
+        internal int Index{ get; private set;}
+
         public int Width { get; }
 
         public int Height { get; }
@@ -17,17 +19,18 @@ namespace BLIT64
         internal readonly IntPtr DataPtr;
         private byte[] _data;
 
-        ~DrawSurface()
+        ~RenderSurface()
         {
             Console.WriteLine("RenderSurface Leak");
             Dispose(false);
         }
 
-        internal DrawSurface(int width, int height) : this(new byte[width * height * 4], width, height )
+        internal RenderSurface(int index, int width, int height) : this(new byte[width * height * 4], width, height )
         {
+            Index = index;
         }
 
-        internal DrawSurface(byte[] source_data, int width, int height)
+        private RenderSurface(byte[] source_data, int width, int height)
         {
             Width = width;
             Height = height;

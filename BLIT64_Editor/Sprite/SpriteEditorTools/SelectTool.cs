@@ -83,6 +83,8 @@ namespace BLIT64_Editor
         {
             if (@params.MouseButton == MouseButton.Left)
             {
+                ShowCursor = false;
+
                 if (!_rect.IsEmpty && _rect.Contains(@params.CursorX, @params.CursorY))
                 {
                     _dragging = true;
@@ -119,6 +121,7 @@ namespace BLIT64_Editor
 
         public override void OnMouseUp(ToolActionParams @params)
         {
+            ShowCursor = true;
             _selecting = false;
             _dragging = false;
         }

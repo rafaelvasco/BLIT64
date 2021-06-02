@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>BLIT64</AssemblyName>
     <Title>BLIT64</Title>
     <Authors>Rafael Vasco (rafaelvasco87@gmail.com)</Authors>

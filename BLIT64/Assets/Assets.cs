@@ -99,9 +99,9 @@ namespace BLIT64
             return sprite_sheet;
         }
 
-        internal static DrawSurface CreateRenderSurface(int width, int height)
+        internal static RenderSurface CreateRenderSurface(int index, int width, int height)
         {
-            var render_surface = new DrawSurface(width, height);
+            var render_surface = new RenderSurface(index, width, height);
             _runtime_assets.Add(render_surface);
             return render_surface;
         }

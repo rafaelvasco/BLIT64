@@ -1,5 +1,4 @@
-﻿
-namespace BLIT64.Toolkit.Gui
+﻿namespace BLIT64
 {
     public enum Alignment
     {

@@ -15,6 +15,7 @@ namespace BLIT64_Common
         private const char EqualsSign = '=';
         private const char ArrayStart = '[';
         private const char ArrayEnd = ']';
+        private const char Comment = '#';
 
         public static T Parse<T>(string bon_file_path) where T : new()
         {
@@ -158,7 +159,7 @@ namespace BLIT64_Common
             {
                 var line = lines[line_index].Trim();
 
-                if (line.Length == 0)
+                if (line.Length == 0 || line[0] == Comment)
                 {
                     ++line_index;
                     continue;

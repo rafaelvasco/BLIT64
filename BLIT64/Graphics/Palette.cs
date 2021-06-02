@@ -1,29 +1,24 @@
 ﻿
-using System.Collections.Generic;
-
 namespace BLIT64
 {
     public class Palette
     {
+        public static readonly int ColorCount = 64;
+
         public const byte TransparentColor = 0;
         public const byte WhiteColor = 1;
         public const byte BlackColor = 2;
         public const byte NoColor = 255;
         
+        public string Name { get; private set;}
+
         public int Count => _colors.Length;
         protected Color[] _colors;
-        private readonly Dictionary<Color, byte> _reverse_map;
 
-        public Palette(Color[] colors)
+        public Palette(string name, Color[] colors)
         {
+            Name = name;
             _colors = colors;
-            _reverse_map = new Dictionary<Color, byte>();
-
-            for (var i = 0; i < _colors.Length; ++i)
-            {
-                _reverse_map.Add(_colors[i], (byte) i);
-            }
-
         }
 
         public byte MatchColor(byte r, byte g, byte b)
@@ -51,11 +46,5 @@ namespace BLIT64
         {
             return ref _colors[index];
         }
-
-        public int ReverseMap(ref Color color)
-        {
-            return _reverse_map.TryGetValue(color, out var index) ? index : (int) 0;
-        }
-
     }
 }

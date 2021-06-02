@@ -2,9 +2,10 @@
 {
     public static class Palettes
     {
+        
 
         //https://lospec.com/pinetreepizza
-        public static readonly Palette Journey = new Palette(new []
+        public static readonly Palette Journey = new("Journey", new []
         {
             new Color(0x000000), // 0
             new Color(0xffffff), // 1
@@ -73,7 +74,7 @@
         });
 
         //http://androidarts.com/palette/Famicube.htm
-        public static readonly Palette Famicube = new Palette(new []
+        public static readonly Palette Famicube = new("Famicube", new []
         {
             new Color(0x000000), 
             new Color(0xffffff), 

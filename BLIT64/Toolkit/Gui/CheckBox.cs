@@ -6,8 +6,6 @@ namespace BLIT64.Toolkit.Gui
         public const int DefaultWidth = 20;
         public const int DefaultHeight = 20;
 
-        public bool Checked { get; private set; }
-
         public string Label
         {
             get => _label.Text;
@@ -19,7 +17,10 @@ namespace BLIT64.Toolkit.Gui
 
         public CheckBox(string id, int width = DefaultWidth, int height = DefaultHeight, string label = "Check") : base(id, width, height)
         {
+
             CanHaveInputFocus = true;
+
+            Toggable = true;
 
             _label = new Label(id + "_label", label)
             {
@@ -28,28 +29,21 @@ namespace BLIT64.Toolkit.Gui
 
             Add(_label);
 
-            _label.Height = this.Height;
+            _label.Height = _height;
 
-            _label.X = Width + 10;
+            _label.X = _width + 10;
 
         }
 
 
-        public override void OnMouseDown(MouseButton button)
+        public override void OnMouseDown(MouseButton button, int x, int y)
         {
             OffsetY = 1;
         }
 
-        public override void OnMouseUp(MouseButton button)
+        public override void OnMouseUp(MouseButton button, int x, int y)
         {
-            Toggle();
-
             OffsetY = 0;
-        }
-
-        private void Toggle()
-        {
-            Checked = !Checked;
         }
 
         public override void OnKeyUp(Key key)
@@ -62,7 +56,17 @@ namespace BLIT64.Toolkit.Gui
             if (key == Key.Space)
             {
                 OffsetY = 0;
-                Checked =  !Checked;
+
+                if (ToggleGroup == null)
+                {
+                    On = !On;
+                }
+                else
+                {
+                    On = true;
+                    Ui.UpdateToggleGroup(this);
+                }
+                
             }
         }
 
@@ -79,11 +83,11 @@ namespace BLIT64.Toolkit.Gui
             }
         }
 
-        public override void Draw(Blitter blitter, Theme theme)
+        public override void Draw(Canvas blitter, IGuiDrawer drawer)
         {
-            theme.DrawCheckbox(blitter, this);
+            drawer.DrawCheckbox(blitter, this);
 
-            DrawChildren(blitter, theme);
+            DrawChildren(blitter, drawer);
         }
     }
 }

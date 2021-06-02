@@ -103,6 +103,39 @@ namespace BLIT64
             return ref _last_key_state;
         }
 
+        public static void ProcessKeyEvent(SDL_Event ev)
+        {
+            switch(ev.type)
+            {
+                case SDL_EventType.SDL_KEYDOWN:
+                    var key_code = (int)ev.key.keysym.sym;
+                    AddKey(key_code);
+                    if (OnKeyDown != null)
+                    {
+                        var key = TranslatePlatformKey(key_code);
+                        if (_last_key_down != key && key != Key.None)
+                        {
+                            _last_key_down = key;
+                            OnKeyDown(key);
+                        }
+                    }
+
+                    break;
+
+                case SDL_EventType.SDL_KEYUP:
+                    var key_code_up = (int)ev.key.keysym.sym;
+                    RemoveKey(key_code_up);
+                    _last_key_down = Key.None;
+                    if (OnKeyUp != null)
+                    {
+                        var key = TranslatePlatformKey(key_code_up);
+                        if (key == Key.None) return;
+                        OnKeyUp(key);
+                    }
+                    break;
+            }
+        }
+
         public static void AddKey(int keyCode)
         {
             var key = TranslatePlatformKey(keyCode);

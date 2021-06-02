@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BLIT64.Toolkit.Gui
 {
-    public class UI
+    public partial class UI
     {
         public Widget HoveredWidget { get; private set; }
 
@@ -11,13 +11,19 @@ namespace BLIT64.Toolkit.Gui
 
         public Widget InputFocusedWidget { get; private set; }
 
+        public IGuiDrawer Drawer { get; set; } = new DefaultGuiDrawer();
+
         public bool DrawStats { get; set; } = false;
 
         private static int _zindex = 1;
 
         private readonly Dictionary<string, int> _map;
 
+        private readonly Dictionary<string, List<Widget>> _toggle_groups;
+
         private readonly List<Widget> _widgets;
+
+        private List<Widget> _updatable_widgets;
 
         private readonly Container _root;
 
@@ -27,14 +33,6 @@ namespace BLIT64.Toolkit.Gui
         private int _mouse_x;
         private int _mouse_y;
 
-        private Theme _gui_theme;
-        private readonly Theme _default_theme;
-
-        public Theme GuiTheme
-        {
-            get => _gui_theme;
-            set => _gui_theme = value ?? _default_theme;
-        }
 
         public UI()
         {
@@ -44,15 +42,13 @@ namespace BLIT64.Toolkit.Gui
             Input.AddKeyDownListener(ProcessKeyDown);
             Input.AddKeyUpListener(ProcessKeyUp);
 
-            _root = new Container("root", Game.Instance.Width, Game.Instance.Height);
+            _root = new Container("root", Game.Instance.Canvas.Width, Game.Instance.Canvas.Height);
 
             _map = new Dictionary<string, int>();
 
+            _toggle_groups = new Dictionary<string, List<Widget>>();
+
             _widgets = new List<Widget>();
-
-            _default_theme = new DefaultTheme();
-
-            _gui_theme = _default_theme;
 
             Widget.Ui = this;
 
@@ -80,6 +76,26 @@ namespace BLIT64.Toolkit.Gui
 
             RecalculateZIndices(_root);
             ReorderWidgets();
+        }
+
+        public void SetProcess(Widget widget, bool process)
+        {
+            if (_updatable_widgets == null)
+            {
+                _updatable_widgets = new List<Widget>();
+            }
+
+            if (process)
+            {
+                if (_updatable_widgets.Contains(widget))
+                {
+                    _updatable_widgets.Add(widget);
+                }
+                else
+                {
+                    _updatable_widgets.Remove(widget);
+                }
+            }
         }
 
         public void SetVisible(string widget_name, bool visible)
@@ -111,10 +127,18 @@ namespace BLIT64.Toolkit.Gui
                 {
                     SetHovered(widget, false);
                 }
+                else
+                {
+                    widget.Hovered = false;
+                }
 
                 if (InputFocusedWidget == widget)
                 {
                     SetInputFocus(widget, false);
+                }
+                else
+                {
+                    widget.HasInputFocus = false;
                 }
 
                 if (widget is Container container)
@@ -127,6 +151,77 @@ namespace BLIT64.Toolkit.Gui
             }
 
             ProcessMouseMove();
+        }
+
+        public void Update()
+        {
+            if (_updatable_widgets == null)
+            {
+                return;
+            }
+
+            foreach (var updatable_widget in _updatable_widgets)
+            {
+                updatable_widget.Update();
+            }
+        }
+
+        public void Draw(Canvas blitter)
+        {
+            _root.Draw(blitter, Drawer);
+
+            if (DrawStats)
+            {
+                blitter.SetColor(Palette.BlackColor);
+                blitter.Text(10, 10, $"Hovered: {HoveredWidget?.Id ?? "None"}", 1);
+                blitter.Text(10, 20, $"Active: {ActiveWidget?.Id ?? "None"}", 1);
+                blitter.Text(10, 30, $"Input Focused: {InputFocusedWidget?.Id ?? "None"}", 1);
+
+                for (int i = 0; i < _widgets.Count; ++i)
+                {
+                    var w = _widgets[i];
+                    blitter.Text(10,  50 + (i)*10, $"{w.Id} [ZIndex: {w.ZIndex}]", 1);
+                }
+            }
+        }
+
+        internal void AssignToggleGroup(Widget widget, string group)
+        {
+            if (group != null)
+            {
+                if (!_toggle_groups.TryGetValue(group, out _))
+                {
+                    _toggle_groups.Add(group, new List<Widget>());                
+                }
+                
+                _toggle_groups[group].Add(widget);
+            }
+            else
+            {
+                List<string> empty_groups = new List<string>();
+
+                foreach (var toggle_group in _toggle_groups)
+                {
+                    if (toggle_group.Value.Contains(widget))
+                    {
+                        toggle_group.Value.Remove(widget);
+
+                        if (toggle_group.Value.Count == 0)
+                        {
+                            empty_groups.Add(toggle_group.Key);
+                        }
+                    }
+
+                }
+
+                foreach (var empty_group in empty_groups)
+                {
+                    _toggle_groups.Remove(empty_group);
+                }
+
+                empty_groups.Clear();
+            }
+            
         }
 
         internal bool Register(Widget widget)
@@ -216,6 +311,11 @@ namespace BLIT64.Toolkit.Gui
         {
             var (x, y) = Input.MousePos;
 
+            if (x == 0 && y == 0)
+            {
+                return;
+            }
+
             _mouse_x = x;
             _mouse_y = y;
 
@@ -294,7 +394,8 @@ namespace BLIT64.Toolkit.Gui
                 ActiveWidget.Dragging = false;
             }
 
-            ActiveWidget.ProcessMouseUp(button);
+            ActiveWidget.ProcessMouseUp(button, _mouse_x - ActiveWidget.DrawX, _mouse_y - ActiveWidget.DrawY);
+
             ActiveWidget.Active = false;
             ActiveWidget = null;
         }
@@ -307,11 +408,21 @@ namespace BLIT64.Toolkit.Gui
                 return;
             }
 
+            HoveredWidget.Active = true;
+            ActiveWidget = HoveredWidget;
+            ActiveWidget.ProcessMouseDown(button, _mouse_x - ActiveWidget.DrawX, _mouse_y - ActiveWidget.DrawY);
+
             if (button == MouseButton.Left)
             {
-                HoveredWidget.Active = true;
-                ActiveWidget = HoveredWidget;
-                ActiveWidget.ProcessMouseDown(button);
+                if (ActiveWidget.Toggable && ActiveWidget.ToggleGroup == null)
+                {
+                    ActiveWidget.On = !ActiveWidget.On;
+                }
+                else if (ActiveWidget.Toggable && ActiveWidget.ToggleGroup != null)
+                {
+                    ActiveWidget.On = true;
+                    UpdateToggleGroup(ActiveWidget);
+                }
 
                 if (InputFocusedWidget != null)
                 {
@@ -334,22 +445,24 @@ namespace BLIT64.Toolkit.Gui
             _last_mouse_y = _mouse_y;
         }
 
-        public void Draw(Blitter blitter)
+
+        internal void UpdateToggleGroup(Widget widget)
         {
-            _root.Draw(blitter, _gui_theme);
-
-            if (DrawStats)
+            if (widget.ToggleGroup == null)
             {
-                blitter.Text(10, 10, $"Hovered: {HoveredWidget?.Id ?? "None"}", 1, Palette.BlackColor);
-                blitter.Text(10, 20, $"Active: {ActiveWidget?.Id ?? "None"}", 1, Palette.BlackColor);
-                blitter.Text(10, 30, $"Input Focused: {InputFocusedWidget?.Id ?? "None"}", 1, Palette.BlackColor);
+                return;
+            }
 
-                for (int i = 0; i < _widgets.Count; ++i)
+            var toggle_group = _toggle_groups[widget.ToggleGroup];
+
+            foreach (var widget_in_group in toggle_group)
+            {
+                if (widget_in_group != widget)
                 {
-                    var w = _widgets[i];
-                    blitter.Text(10,  50 + (i)*10, $"{w.Id} [ZIndex: {w.ZIndex}]", 1, Palette.BlackColor);
+                    widget_in_group.On = false;
                 }
             }
         }
+       
     }
 }

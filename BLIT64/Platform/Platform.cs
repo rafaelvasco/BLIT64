@@ -60,9 +60,8 @@ namespace BLIT64
             string title, 
             int display_width, 
             int display_height, 
-            int render_surface_width, 
-            int render_surface_height, 
-            bool fullscreen)
+            int pixel_size = 1,
+            bool fullscreen = false)
         {
             Ensure64BitArchitecture();
             
@@ -77,7 +76,7 @@ namespace BLIT64
             SDL_DisableScreenSaver();
 
             CreateWindow(title, display_width, display_height, fullscreen);
-            InitGraphics(render_surface_width, render_surface_height);
+            InitGraphics(display_width / pixel_size, display_height / pixel_size);
             InitKeyboard();
         }
 
@@ -114,79 +113,18 @@ namespace BLIT64
                         break;
 
                     case SDL_EventType.SDL_KEYDOWN:
-                        var key_code = (int) ev.key.keysym.sym;
-                        AddKey(key_code);
-                        if (OnKeyDown != null)
-                        {
-                            var key = TranslatePlatformKey(key_code);
-                            if (_last_key_down != key && key != Key.None)
-                            {
-                                _last_key_down = key;
-                                OnKeyDown(key);
-                            }
-                        }
-                        
-                        break;
-
                     case SDL_EventType.SDL_KEYUP:
-                        var key_code_up = (int) ev.key.keysym.sym;
-                        RemoveKey(key_code_up);
-                        _last_key_down = Key.None;
-                        if (OnKeyUp != null)
-                        {
-                            var key = TranslatePlatformKey(key_code_up);
-                            if (key == Key.None) return;
-                            OnKeyUp(key);
-                        }
+                        ProcessKeyEvent(ev);
                         break;
 
                     case SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                        SetMouseButtonState(ev.button.button, true);
-                        if (OnMouseDown != null)
-                        {
-                            var button = TranslatePlatformMouseButton(ev.button.button);
-                            OnMouseDown.Invoke(button);
-                        }
-                        break;
-
                     case SDL_EventType.SDL_MOUSEBUTTONUP:
-                        SetMouseButtonState(ev.button.button, false);
-                        if (OnMouseUp != null)
-                        {
-                            var button = TranslatePlatformMouseButton(ev.button.button);
-                            OnMouseUp.Invoke(button);
-                        }
-                        break;
-
                     case SDL_EventType.SDL_MOUSEMOTION:
-                        OnMouseMove?.Invoke();
+                        ProcessMouseEvent(ev);
                         break;
 
                     case SDL_EventType.SDL_WINDOWEVENT:
-
-                        switch (ev.window.windowEvent)
-                        {
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-
-                                var new_w = ev.window.data1;
-                                var new_h = ev.window.data2;
-                                WindowResized?.Invoke((new_w, new_h));
-                                UpdateDisplayScaleFactor();
-                                break;
-
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                                OnQuit?.Invoke();
-                                break;
-
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                                LostFocus?.Invoke();
-                                break;
-
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                                GainedFocus?.Invoke();
-                                break;
-                        }
-
+                        ProcessWindowEvent(ev);
                         break;
 
                     case SDL_EventType.SDL_CONTROLLERDEVICEADDED:

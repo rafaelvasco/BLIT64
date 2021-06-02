@@ -7,17 +7,19 @@ namespace Demo
     class GuiDemo : Scene
     {
         private UI ui;
+
         public override void Load()
         {
             ui = new UI()
             {
-                DrawStats = true
+                DrawStats = false
             };
 
-            var tabs = new Tabs("tabs", Game.Width, Game.Height);
+            var tabs = new Tabs("tabs", Game.Canvas.Width, Game.Canvas.Height, 200, 20);
 
-            var panel1 = tabs.AddTab("tab1");
-            var panel2 = tabs.AddTab("tab2");
+            var panel1 = tabs.AddTab("Window");
+            var panel2 = tabs.AddTab("List View");
+            var panel3 = tabs.AddTab("Layout");
 
             var button_panel_1 = new Button("button_panel_1", "Open Window", 160);
 
@@ -41,9 +43,23 @@ namespace Demo
 
             list_view.OnSelect += item => { Console.WriteLine($"Selected: {item.Label}"); };
 
+            var layout_container = new Container("layout_container", 300, 300);
+
+            layout_container.Add(new Button("layout_container_b1", "B1", 50));
+            layout_container.Add(new Button("layout_container_b2", "B3", 50));
+            layout_container.Add(new Button("layout_container_b2", "B3", 50));
+
+            layout_container.Layout(Orientation.Vertical, ContainerAlignment.Stretch, ContainerAlignment.End, 10,10);
+
+            layout_container.DebugColor = 10;
+
             panel1.Add(button_panel_1);
 
             panel2.Add(list_view);
+
+            panel3.Add(layout_container);
+
+            layout_container.Align(Alignment.Center);
 
             button_panel_1.Align(Alignment.Center);
 
@@ -68,9 +84,9 @@ namespace Demo
             }
         }
 
-        public override void Draw(Blitter blitter)
+        public override void Draw(Canvas blitter)
         {
-            blitter.Clear(8);
+            blitter.Clear();
 
             ui.Draw(blitter);
         }

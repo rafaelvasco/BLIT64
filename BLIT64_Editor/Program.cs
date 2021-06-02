@@ -10,9 +10,8 @@ namespace BLIT64_Editor
                 title: "BLIT64 Editor",
                 display_width: 1280,
                 display_height: 720,
-                render_surface_width: 640,
-                render_surface_height: 360);
-            game.Run(scene: new SpriteEditor());
+                pixel_size: 2);
+            game.Run(scene: new App());
         }
     }
 }

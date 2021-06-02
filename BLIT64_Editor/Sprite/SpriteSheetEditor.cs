@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using BLIT64;
+using BLIT64.Toolkit.Gui;
 using BLIT64_Editor.Common;
 
 namespace BLIT64_Editor
@@ -13,11 +14,11 @@ namespace BLIT64_Editor
         private int _last_mouse_down_y;
         private int _mouse_x;
         private int _mouse_y;
+        private bool _mouse_inside;
 
         private byte _paint_color = 1;
 
         private bool _shift_down;
-        private bool _draw_cursor;
         private bool _selection_surface_filled;
 
         private int _select_width;
@@ -31,22 +32,23 @@ namespace BLIT64_Editor
 
         private MouseButton _mouse_button_down;
 
-        private readonly SpriteEditorLayout _layout;
         private readonly Dictionary<int, Tool> _tools;
         private readonly ToolActionParams _tool_action_params;
         private readonly Pixmap _overlay_surface;
         private readonly Pixmap _select_surface;
-
-        
         private readonly DashedRect _dashed_rect;
+        private readonly Canvas _canvas;
+
+        private AppLayout.LayoutData _layout = AppLayout.Data;
 
 
-        public SpriteSheetEditor(SpriteEditorLayout layout, Blitter blitter, Rect area) : base(blitter, area)
+        public SpriteSheetEditor(string id, int width, int height) : base(id, width, height)
         {
-            _layout = layout;
+            _canvas = Game.Instance.Canvas;
+
             _tool_action_params = new ToolActionParams()
             {
-                Blitter = _blitter,
+                Blitter = Game.Instance.Canvas,
             };
 
             _tools = new Dictionary<int, Tool>
@@ -62,8 +64,8 @@ namespace BLIT64_Editor
 
             _sprite_source_rect = Rect.Empty;
 
-            _overlay_surface = Assets.CreatePixmap(area.W, area.H);
-            _select_surface = Assets.CreatePixmap(area.W, area.H);
+            _overlay_surface = Assets.CreatePixmap(Width, Height);
+            _select_surface = Assets.CreatePixmap(Width, Height);
 
             _tool_action_params.Overlay = _overlay_surface;
 
@@ -75,9 +77,10 @@ namespace BLIT64_Editor
             TypedMessager<int>.On(MessageCodes.SpriteSheetEditorBrushSizeChanged, SetBrushSize);
 
             Messager.On(MessageCodes.SelectionStartedMoving, OnSelectionRectStartedMoving);
-
             _dashed_rect = new DashedRect();
         }
+
+       
 
 
         public void SetCurrentTool(Tools tool)
@@ -113,33 +116,33 @@ namespace BLIT64_Editor
 
         public void ClearFrame()
         {
-            _blitter.SetSurface(CurrentSpritesheet);
+            _canvas.SetSurface(CurrentSpritesheet);
 
             var source_rect = GetGlobalModifyRegion();
 
-            _blitter.Clip(source_rect.X, source_rect.Y, source_rect.W, source_rect.H);
+            _canvas.Clip(source_rect.X, source_rect.Y, source_rect.W, source_rect.H);
 
-            _blitter.Clear();
+            _canvas.Clear();
 
-            _blitter.Clip();
+            _canvas.Clip();
 
-            _blitter.SetSurface(null);
+            _canvas.SetSurface(null);
         }
 
         public void ClearAll()
         {
-            _blitter.SetSurface(CurrentSpritesheet);
+            _canvas.SetSurface(CurrentSpritesheet);
 
-            _blitter.Clear();
+            _canvas.Clear();
 
-            _blitter.SetSurface(null);
+            _canvas.SetSurface(null);
         }
 
         public void Rotate()
         {
             var global_source_rect = GetGlobalModifyRegion();
 
-            _blitter.SetSurface(CurrentSpritesheet);
+            _canvas.SetSurface(CurrentSpritesheet);
 
             if (!SelectionEmpty())
             {
@@ -152,9 +155,9 @@ namespace BLIT64_Editor
 
                 var target_rect = GetGlobalSelectionRect();
 
-                _blitter.SetSurface(_select_surface);
+                _canvas.SetSurface(_select_surface);
 
-                _blitter.Rotate90(
+                _canvas.Rotate90(
                     global_source_rect.X, 
                     global_source_rect.Y ,
                     global_source_rect.W, 
@@ -164,11 +167,11 @@ namespace BLIT64_Editor
                     target_rect.W,
                     target_rect.H);
 
-                _blitter.SetSurface(null);
+                _canvas.SetSurface(null);
             }
             else
             {
-                _blitter.Rotate90(
+                _canvas.Rotate90(
                     global_source_rect.X, 
                     global_source_rect.Y ,
                     global_source_rect.W, 
@@ -176,7 +179,7 @@ namespace BLIT64_Editor
             }
            
 
-            _blitter.SetSurface(null);
+            _canvas.SetSurface(null);
             
         }
 
@@ -226,31 +229,27 @@ namespace BLIT64_Editor
 
         public void CutToSelectSurface(Rect region)
         {
-            Console.WriteLine("Cut");
+            _canvas.SetSurface(_select_surface);
 
-            _blitter.SetSurface(_select_surface);
+            _canvas.Pixmap(CurrentSpritesheet, region.X, region.Y, region);
 
-            _blitter.Pixmap(CurrentSpritesheet, region.X, region.Y, region);
+            _canvas.SetSurface(null);
 
-            _blitter.SetSurface(null);
+            _canvas.SetSurface(CurrentSpritesheet);
 
-            _blitter.SetSurface(CurrentSpritesheet);
+            _canvas.Clip(region);
 
-            _blitter.Clip(region);
+            _canvas.Clear();
 
-            _blitter.Clear();
+            _canvas.Clip();
 
-            _blitter.Clip();
-
-            _blitter.SetSurface(null);
+            _canvas.SetSurface(null);
 
             _selection_surface_filled = true;
         }
 
         public void PasteFromSelectSurface()
         {
-            Console.WriteLine("Paste");
-
             if (!_selection_surface_filled)
             {
                 return;
@@ -259,17 +258,17 @@ namespace BLIT64_Editor
             var global_select_rect = GetGlobalSelectionRect();
             var (global_x, global_y) = LocalFramePointToSpriteSheetPoint(_select_translate_x, _select_translate_y);
 
-            _blitter.SetSurface(CurrentSpritesheet);
+            _canvas.SetSurface(CurrentSpritesheet);
 
-            _blitter.Pixmap(_select_surface, global_x, global_y, global_select_rect);
+            _canvas.Pixmap(_select_surface, global_x, global_y, global_select_rect);
 
-            _blitter.SetSurface(null);
+            _canvas.SetSurface(null);
 
-            _blitter.SetSurface(_select_surface);
+            _canvas.SetSurface(_select_surface);
 
-            _blitter.Clear();
+            _canvas.Clear();
 
-            _blitter.SetSurface(null);
+            _canvas.SetSurface(null);
 
             _selection_surface_filled = false;
 
@@ -281,16 +280,16 @@ namespace BLIT64_Editor
 
             if (SelectionEmpty())
             {
-                _blitter.SetSurface(CurrentSpritesheet);
+                _canvas.SetSurface(CurrentSpritesheet);
 
-                _blitter.FlipH(
+                _canvas.FlipH(
                     global_source_rect.X,
                     global_source_rect.Y,
                     global_source_rect.W,
                     global_source_rect.H
                 );
 
-                _blitter.SetSurface(null);
+                _canvas.SetSurface(null);
             }
             else
             {
@@ -300,16 +299,16 @@ namespace BLIT64_Editor
                 }
 
 
-                _blitter.SetSurface(_select_surface);
+                _canvas.SetSurface(_select_surface);
 
-                _blitter.FlipH(
+                _canvas.FlipH(
                     global_source_rect.X,
                     global_source_rect.Y,
                     global_source_rect.W,
                     global_source_rect.H
                 );
 
-                _blitter.SetSurface(null);
+                _canvas.SetSurface(null);
                 
             }
             
@@ -321,16 +320,16 @@ namespace BLIT64_Editor
 
             if (SelectionEmpty())
             {
-                _blitter.SetSurface(CurrentSpritesheet);
+                _canvas.SetSurface(CurrentSpritesheet);
 
-                _blitter.FlipV(
+                _canvas.FlipV(
                     global_source_rect.X,
                     global_source_rect.Y,
                     global_source_rect.W,
                     global_source_rect.H
                 );
 
-                _blitter.SetSurface(null);
+                _canvas.SetSurface(null);
             }
             else
             {
@@ -340,16 +339,16 @@ namespace BLIT64_Editor
                 }
 
 
-                _blitter.SetSurface(_select_surface);
+                _canvas.SetSurface(_select_surface);
 
-                _blitter.FlipV(
+                _canvas.FlipV(
                     global_source_rect.X,
                     global_source_rect.Y,
                     global_source_rect.W,
                     global_source_rect.H
                 );
 
-                _blitter.SetSurface(null);
+                _canvas.SetSurface(null);
                 
             }
         }
@@ -376,15 +375,19 @@ namespace BLIT64_Editor
                 Calc.FastFloorToInt(tranformed_y * source_surface_factor_y));
         }
 
-        public override void OnMouseEnter()
+        public override void OnMouserEnter()
         {
-            _draw_cursor = true;
+            _mouse_inside = true;
         }
 
-        public override void OnMouseLeave()
+
+        public override void OnMouseExit()
         {
-            _draw_cursor = false;
+            _tool_action_params.PaintX = 0;
+            _tool_action_params.PaintY = 0;
+            _mouse_inside = false;
         }
+
 
         public override void Update()
         {
@@ -395,6 +398,7 @@ namespace BLIT64_Editor
                _dashed_rect.Update();
             }
         }
+
 
         public override void OnMouseDown(MouseButton button, int x, int y)
         {
@@ -407,7 +411,7 @@ namespace BLIT64_Editor
 
             var source_rect = _sprite_source_rect;
 
-            _tool_action_params.SourceRect = source_rect;
+            _tool_action_params.SourceRect = new Rect(source_rect.X, source_rect.Y, source_rect.W, source_rect.H);
 
             switch (button)
             {
@@ -441,12 +445,13 @@ namespace BLIT64_Editor
 
         public override void OnMouseMove(int x, int y)
         {
+
             _mouse_x = x;
             _mouse_y = y;
 
             var source_rect = _sprite_source_rect;
 
-            _tool_action_params.SourceRect = source_rect;
+            _tool_action_params.SourceRect = new Rect(source_rect.X, source_rect.Y, source_rect.W, source_rect.H);
 
             var (paint_x, paint_y, editor_x, editor_y) = GetMousePositions(x, y);
 
@@ -483,6 +488,7 @@ namespace BLIT64_Editor
             }
         }
 
+
         public override void OnKeyDown(Key key)
         {
             CurrentTool.OnKeyDown(key, _tool_action_params);
@@ -515,30 +521,22 @@ namespace BLIT64_Editor
             }
         }
 
-        public override void Draw()
+        public override void Draw(Canvas blitter, IGuiDrawer drawer)
         {
-            var blitter = _blitter;
             var source_rect = _sprite_source_rect;
-            var scale_factor = (float)_area.W / CurrentSpritesheet.Width;
+            var scale_factor = (float)Width / CurrentSpritesheet.Width;
             var source_surface_factor = CurrentSpritesheet.Width / source_rect.W;
             var final_scale = (int) scale_factor * source_surface_factor;
             var brush_size = CurrentTool.BrushSize;
-            var cursor_x = (int)(_area.X + Calc.Snap(_mouse_x, brush_size * final_scale));
-            var cursor_y = (int)(_area.Y + Calc.Snap(_mouse_y, brush_size * final_scale));
+            var cursor_x = (int)(DrawX + Calc.Snap(_mouse_x, brush_size * final_scale));
+            var cursor_y = (int)(DrawY + Calc.Snap(_mouse_y, brush_size * final_scale));
             var cursor_border_size = _layout.EditorCursorBorder;
             var panel_border_size = _layout.EditorPanelBorder;
 
             DrawSpriteSheet();
 
-            if (_draw_cursor)
-            {
-                DrawCursor();
-            }
-
             DrawBorders();
            
-            DrawSpriteId();
-
             /* ========================================= */
             /* SELECT MODE */
             /* ========================================= */
@@ -549,6 +547,11 @@ namespace BLIT64_Editor
             }
 
             DrawOverlay();
+
+            if (_mouse_inside && CurrentTool.ShowCursor)
+            {
+                DrawCursor();
+            }
             
             /* ========================================= */
             /* DRAW ELEMENTS IMPLEMENTATION */
@@ -556,14 +559,17 @@ namespace BLIT64_Editor
 
             void DrawSpriteSheet()
             {
-                blitter.Rect(_area.X, _area.Y, _area.W, _area.H, 2);
+                blitter.SetColor(2);
+                blitter.RectFill(DrawX, DrawY, Width, Height);
 
-                blitter.Pixmap(CurrentSpritesheet, _area.X, _area.Y, source_rect, _area.W, _area.H);
+                blitter.Pixmap(CurrentSpritesheet, DrawX, DrawY, source_rect, Width, Height);
             }
 
             void DrawOverlay()
             {
-                blitter.Pixmap(_overlay_surface, _area.X, _area.Y, Rect.Empty);
+                blitter.Pixmap(_overlay_surface, DrawX, DrawY, Rect.Empty);
+                blitter.SetColor(Palette.WhiteColor);
+                blitter.Text(DrawX + _layout.EditorMousePosLabelOffsetX, DrawY + _layout.EditorMousePosLabelOffsetY, $"{_tool_action_params.PaintX},{_tool_action_params.PaintY}");
             }
 
             void DrawSelectElements()
@@ -596,56 +602,47 @@ namespace BLIT64_Editor
 
             }
 
-            void DrawSpriteId()
-            {
-                var sprite_id_txt = $"#{SpriteSheetNavigator.Instance.CurrentSpriteId:000}";
-
-                var (text_width, text_height) = blitter.TextMeasure(sprite_id_txt, 2);
-
-                blitter.Text(_area.X + _area.W/2 - text_width/2, _area.Y - text_height - 3, sprite_id_txt, 2, 2);
-                blitter.Text(_area.X + _area.W/2 - text_width/2, _area.Y - text_height - 5, sprite_id_txt, 2);
-            }
-
             void DrawCursor()
             {
-                blitter.RectBorder(
-                    cursor_x + cursor_border_size, 
-                    cursor_y + cursor_border_size, 
-                    (brush_size * final_scale) - cursor_border_size*2, 
-                    (brush_size * final_scale) - cursor_border_size*2, 
-                    Palette.BlackColor,
+                blitter.SetColor(Palette.BlackColor);
+                blitter.Rect(
+                    (cursor_x + cursor_border_size), 
+                    (cursor_y + cursor_border_size), 
+                    ((brush_size * final_scale) - cursor_border_size*2), 
+                    ((brush_size * final_scale) - cursor_border_size*2), 
                     cursor_border_size);
 
-                blitter.RectBorder(cursor_x, cursor_y,  brush_size * final_scale, brush_size * final_scale, Palette.WhiteColor, cursor_border_size);
+                blitter.SetColor(Palette.WhiteColor);
+                blitter.Rect(cursor_x, cursor_y,  (brush_size * final_scale), (brush_size * final_scale), cursor_border_size);
             }
 
             void DrawBorders()
             {
-                blitter.RectBorder(
-                    _area.X,
-                    _area.Y,
-                    _area.W,
-                    _area.H,
-                    Palette.WhiteColor,
+                blitter.SetColor(Palette.WhiteColor);
+                blitter.Rect(
+                    DrawX,
+                    DrawY,
+                    Width,
+                    Height,
                     panel_border_size
                 );
 
-                blitter.Rect(
-                    x: _area.X - panel_border_size, 
-                    y: _area.Y + _area.H + panel_border_size, 
-                    w: _area.W + 2 * panel_border_size, 
-                    h: panel_border_size, 
-                    color: Palette.BlackColor);
+                blitter.SetColor(Palette.BlackColor);
+                blitter.RectFill(
+                    x: DrawX - panel_border_size,
+                    y: DrawY + Height + panel_border_size,
+                    w: Width + panel_border_size * 2,
+                    h: panel_border_size);
             }
         }
 
         private void ClearSelectionRect()
         {
-            _blitter.SetSurface(_overlay_surface);
+            _canvas.SetSurface(_overlay_surface);
     
-            _blitter.Clear();
+            _canvas.Clear();
 
-            _blitter.SetSurface(null);
+            _canvas.SetSurface(null);
 
             if (_selection_surface_filled)
             {
@@ -663,8 +660,6 @@ namespace BLIT64_Editor
 
         private void OnSelectRectChanged(Rect obj)
         {
-            Console.WriteLine($"Received Selection Rect: {obj}");
-
             if (obj.IsEmpty)
             {
                 ClearSelectionRect();
@@ -695,8 +690,6 @@ namespace BLIT64_Editor
         {
             _select_translate_x = obj.X;
             _select_translate_y = obj.Y;
-
-            Console.WriteLine($"Moved: {obj}");
         }
 
         private void OnNavigatorSourceRectChanged(Rect rect)

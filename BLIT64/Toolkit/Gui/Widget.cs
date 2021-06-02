@@ -13,13 +13,45 @@ namespace BLIT64.Toolkit.Gui
 
         public static UI Ui { get; internal set; }
 
+        public Container Parent { get; internal set; }
+
         private static int _global_uid;
 
-        internal int Uid;
-
-        internal int ZIndex;
+        public int Uid { get; }
+       
+        public int ZIndex { get; set; }
 
         public string Id { get; }
+
+        public UIState State
+        {
+            get
+            {
+                if (Disabled)
+                {
+                    return UIState.Disabled;
+                }
+
+                if (Hovered)
+                {
+                    return UIState.Hover;
+                }
+
+                if (Active)
+                {
+                    return UIState.Active;
+                }
+
+                if (On)
+                {
+                    return UIState.On;
+                }
+
+                return UIState.Idle;
+            }
+        }
+
+      
 
         public int X { get; set; }
         public int Y { get; set; }
@@ -28,18 +60,33 @@ namespace BLIT64.Toolkit.Gui
 
         public int OffsetY { get; set; }
 
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public virtual int Width
+        {
+            get => _width;
+            set => _width = value;
+        }
 
-        public bool Visible { get; internal set; } = true;
-
-        public bool IgnoreInput { get; set; } = false;
+        public virtual int Height
+        {
+            get => _height;
+            set => _height = value;
+        }
 
         public bool Hovered { get; internal set; }
 
         public bool Active { get; internal set; }
 
+        public bool On { get; internal set; }
+
+        public bool Visible { get; internal set; } = true;
+
+        public bool Disabled { get; set; } = false;
+
+        public bool IgnoreInput { get; set; } = false;
+
         public bool Draggable { get; set; }
+
+        public bool Toggable { get; set; } = false;
 
         public bool Dragging { get; internal set; }
 
@@ -49,23 +96,42 @@ namespace BLIT64.Toolkit.Gui
 
         public bool BubbleEventsToParent { get; set; } = false;
 
-        internal int DrawX => Parent?.DrawX + X + OffsetX ?? X + OffsetX;
-        internal int DrawY => Parent?.DrawY + Y + OffsetY ?? Y + OffsetY;
+        public string ToggleGroup
+        {
+            get => _toggle_group;
+            set
+            {
+                _toggle_group = value;
+
+                if (value != null)
+                {
+                    Ui.AssignToggleGroup(this, _toggle_group);
+                }
+            }
+        }
+
+        public int DrawX => Parent?.DrawX + X + OffsetX ?? X + OffsetX;
+        public int DrawY => Parent?.DrawY + Y + OffsetY ?? Y + OffsetY;
 
         public Rect GlobalGeometry => new Rect(DrawX, DrawY, Width, Height);
 
-        public Container Parent { get; internal set; }
+        protected int _width;
+
+        protected int _height;
+
+        private string _toggle_group;
 
         public void ShowAndFocus()
         {
-            if (this.Visible)
+            if (Visible)
             {
                 return;
             }
 
+            Align(Alignment.Center);
             Ui.SetVisible(this, true);
             Ui.SetInputFocus(this, true);
-            Align(Alignment.Center);
+            
         }
 
         protected Widget(string id, int width, int height)
@@ -74,24 +140,24 @@ namespace BLIT64.Toolkit.Gui
             Uid = ++_global_uid;
             X = 0;
             Y = 0;
-            Width = width;
-            Height = height;
+            _width = width;
+            _height = height;
         }
 
-        internal void ProcessMouseDown(MouseButton button)
+        internal void ProcessMouseDown(MouseButton button, int x, int y)
         {
-            OnMouseDown(button);
+            OnMouseDown(button, x, y);
 
-            if (Hovered)
+            if (State == UIState.Hover)
             {
                 OnPress?.Invoke();
             }
         }
 
-        internal void ProcessMouseUp(MouseButton button)
+        internal void ProcessMouseUp(MouseButton button, int x, int y)
         {
-            OnMouseUp(button);
-            if (Hovered)
+            OnMouseUp(button, x, y);
+            if (State == UIState.Hover)
             {
                 OnClick?.Invoke();
                 OnRelease?.Invoke();
@@ -128,9 +194,8 @@ namespace BLIT64.Toolkit.Gui
             OnMouseExit();
         }
 
-        public virtual void OnMouseDown(MouseButton button) {}
-
-        public virtual void OnMouseUp(MouseButton button) {}
+        public virtual void OnMouseDown(MouseButton button, int x, int y) {}
+        public virtual void OnMouseUp(MouseButton button, int x, int y) {}
         public virtual void OnMouseMove(int x, int y) {}
         public virtual void OnKeyDown(Key key) {}
         public virtual void OnKeyUp(Key key) {}
@@ -144,6 +209,11 @@ namespace BLIT64.Toolkit.Gui
 
         public void Align(Alignment alignment, int margin_top=0, int margin_left=0, int margin_right=0, int margin_bottom=0)
         {
+            if (Parent == null)
+            {
+                return;
+            }
+
             switch (alignment)
             {
                 case Alignment.TopLeft:
@@ -203,7 +273,9 @@ namespace BLIT64.Toolkit.Gui
             }
         }
 
-        public abstract void Draw(Blitter blitter, Theme theme);
+        public virtual void Update() {}
+
+        public abstract void Draw(Canvas blitter, IGuiDrawer drawer);
 
         public int CompareTo(Widget other)
         {

@@ -2,14 +2,14 @@
 {
     public abstract class Scene
     {
-        public Game Game { get; internal set; }
-        public Blitter Blitter { get; internal set; }
+        public static Game Game { get; internal set; }
+        public static Canvas Canvas { get; internal set; }
 
         public abstract void Load();
 
         public abstract void Update();
 
-        public abstract void Draw(Blitter blitter);
+        public abstract void Draw(Canvas blitter);
 
     }
 
@@ -23,7 +23,7 @@
         {
         }
 
-        public override void Draw(Blitter blitter)
+        public override void Draw(Canvas blitter)
         {
         }
     }
@@ -38,7 +38,7 @@
         {
         }
 
-        public override void Draw(Blitter blitter)
+        public override void Draw(Canvas blitter)
         {
         }
     }

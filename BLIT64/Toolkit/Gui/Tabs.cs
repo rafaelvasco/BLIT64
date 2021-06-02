@@ -1,8 +1,4 @@
-﻿
-
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
 
 namespace BLIT64.Toolkit.Gui
 {
@@ -14,19 +10,19 @@ namespace BLIT64.Toolkit.Gui
 
         public event TabButtonEventHandler OnSelect;
 
-        public TabButton(int index, string id, string label, int width = DefaultWidth, int height = DefaultHeight) : base(id, label, width, height)
+        public TabButton(int index, string id, string label, int width , int height) : base(id, label, width, height)
         {
             Index = index;
             OnClick += OnClickTab;
             CanHaveInputFocus = false;
         }
 
-        public override void OnMouseDown(MouseButton button)
+        public override void OnMouseDown(MouseButton button, int x, int y)
         {
             _label.OffsetY = 1;
         }
 
-        public override void OnMouseUp(MouseButton button)
+        public override void OnMouseUp(MouseButton button, int x, int y)
         {
             _label.OffsetY = 0;
         }
@@ -40,25 +36,41 @@ namespace BLIT64.Toolkit.Gui
     public class TabHeader : Container
     {
         private int _tab_count;
+        private int _tab_pos_index;
+        private readonly int _tab_width;
 
-        public TabHeader(string id, int width, int height) : base(id, width, height)
+
+        public TabHeader(string id, int width, int height, int tab_width) : base(id, width, height)
         {
+            _tab_width = tab_width;
         }
 
         internal TabButton AddTab(string name)
         {
             var tab_id = _tab_count++;
-            var tab_header = new TabButton(tab_id, Id + "_" + name, name, 50, Height-2);
+            var tab_header = new TabButton(tab_id, Id + "_" + name, name, _tab_width, Height)
+            {
+                ToggleGroup = Id + "_toggle_group",
+                Toggable = true
+            };
+
+            if (Children.Count == 0)
+            {
+                tab_header.On = true;
+            }
+
             Add(tab_header);
-            tab_header.X = tab_id * tab_header.Width;
+
+            tab_header.X = _tab_pos_index;
+
+            _tab_pos_index = tab_header.X + tab_header.Width + 2;
+
             return tab_header;
         }
 
-        public override void Draw(Blitter blitter, Theme theme)
+        public override void Draw(Canvas blitter, IGuiDrawer drawer)
         {
-            theme.DrawTabHeader(blitter, this);
-
-            DrawChildren(blitter, theme);
+            DrawChildren(blitter, drawer);
         }
     }
 
@@ -70,13 +82,15 @@ namespace BLIT64.Toolkit.Gui
 
         private readonly List<Panel> _tab_panels;
 
-        public int TabHeaderHeight { get; set; } = 30;
+        private readonly int _tab_header_height;
 
-        public Tabs(string id, int width, int height) : base(id, width, height)
+        public Tabs(string id, int width, int height, int tab_width, int tab_height) : base(id, width, height)
         {
+            _tab_header_height = tab_height;
+
             _tab_panels = new List<Panel>();
 
-            _header = new TabHeader(id + "header", Width, TabHeaderHeight);
+            _header = new TabHeader(id + "header", _width, height: _tab_header_height, tab_width: tab_width);
 
             Add(_header);
         }
@@ -86,12 +100,13 @@ namespace BLIT64.Toolkit.Gui
             var tab = _header.AddTab(title);
             tab.OnSelect += TabOnSelect;
 
-            var panel = new Panel(Id + "_panel", Width, Height - TabHeaderHeight)
+            var panel = new Panel(Id + "_panel", Width, Height - _tab_header_height)
             {
-                Y = TabHeaderHeight,
+                Y = _tab_header_height,
                 IgnoreInput = true,
                 CanHaveInputFocus = false
             };
+
             Add(panel);
             _tab_panels.Add(panel);
             Ui.SetVisible(panel, _tab_panels.Count == 1);

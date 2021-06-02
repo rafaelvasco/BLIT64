@@ -21,23 +21,50 @@ namespace BLIT64
             return ref _mouse_state;
         }
 
+        public static void ProcessMouseEvent(SDL_Event ev)
+        {
+            switch (ev.type)
+            {
+                case SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                    SetMouseButtonState(ev.button.button, true);
+                    if (OnMouseDown != null)
+                    {
+                        var button = TranslatePlatformMouseButton(ev.button.button);
+                        OnMouseDown.Invoke(button);
+                    }
+                    break;
+
+                case SDL_EventType.SDL_MOUSEBUTTONUP:
+                    SetMouseButtonState(ev.button.button, false);
+                    if (OnMouseUp != null)
+                    {
+                        var button = TranslatePlatformMouseButton(ev.button.button);
+                        OnMouseUp.Invoke(button);
+                    }
+                    break;
+
+                case SDL_EventType.SDL_MOUSEMOTION:
+                    OnMouseMove?.Invoke();
+                    break;
+            }
+        }
+
         public static (int X, int Y) GetMousePos()
         {
-            SDL_GetMouseState(out int x, out int y);
+            _ = SDL_GetMouseState(out int x, out int y);
 
             return (x, y);
         }
 
         private static MouseButton TranslatePlatformMouseButton(byte button)
         {
-            switch (button)
+            return button switch
             {
-                case 1: return MouseButton.Left;
-                case 2: return MouseButton.Middle;
-                case 3: return MouseButton.Right;
-            }
-
-            return MouseButton.None;
+                1 => MouseButton.Left,
+                2 => MouseButton.Middle,
+                3 => MouseButton.Right,
+                _ => MouseButton.None,
+            };
         }
 
         private static void SetMouseButtonState(byte sdl_button, bool down)

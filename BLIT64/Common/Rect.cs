@@ -28,12 +28,6 @@ namespace BLIT64
             H = h;
         }
 
-        public static Rect FromBox(int left, int top, int right, int bottom)
-        {
-            return new Rect(Math.Min(left, right), Math.Min(top, bottom), Math.Abs(right - left), Math.Abs(bottom - top));
-        }
-
-
         public bool IsEmpty => W == 0 && H == 0;
 
         public bool Contains(int x, int y)
@@ -113,6 +107,10 @@ namespace BLIT64
             return !Equals(ref value1, ref value2);
         }
 
+        public Rect Translated(int x, int y)
+        {
+            return new Rect(X + x, Y + y, W, H);
+        }
 
         public override string ToString()
         {

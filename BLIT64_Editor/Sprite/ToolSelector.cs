@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using BLIT64;
+using BLIT64.Toolkit.Gui;
 using BLIT64_Editor.Common;
 
 namespace BLIT64_Editor
@@ -19,21 +20,19 @@ namespace BLIT64_Editor
         public int Action;
     }
 
-    public class ToolSelector : Component
+    public class ToolSelector : Container
     {
         private readonly SpriteSheet _icons;
-        private readonly SpriteEditorLayout _layout;
         private readonly Dictionary<int, ToolButton> _tool_buttons;
         private int _current_tool_index;
         private int _current_pressed_action_index = -1;
 
         private readonly int _down_arrow_sprite;
 
-        private int tool_tiles_count = 7;
+        private readonly int tool_tiles_count = 7;
 
-        public ToolSelector(SpriteEditorLayout layout, Blitter blitter, Rect area) : base(blitter, area)
+        public ToolSelector(string id) : base(id, AppLayout.Data.ToolBoxWidth, AppLayout.Data.ToolBoxHeight)
         {
-            _layout = layout;
             _icons = Assets.Get<SpriteSheet>("spr_ed_icons");
             _tool_buttons = new Dictionary<int, ToolButton>();
 
@@ -72,20 +71,18 @@ namespace BLIT64_Editor
 
         private void BuildToolButtons()
         {
-            var icons_scale = _layout.ToolBoxIconsScale;
+            var icons_scale = AppLayout.Data.ToolBoxIconsScale;
             var tile_size = (int)(_icons.TileSize * icons_scale);
-            var icons_spacing = _layout.ToolBoxIconsSpacing;
+            var icons_spacing = AppLayout.Data.ToolBoxIconsSpacing;
             var icons_area_width = (tile_size * tool_tiles_count) + (tool_tiles_count + 1) * icons_spacing;
-
-
 
             for (int i = 0; i < tool_tiles_count; ++i)
             {
                 var tool_button = new ToolButton
                 {
                     Area = new Rect(
-                        _area.W / 2 - (icons_area_width / 2) + (i * tile_size) + (icons_spacing * i) + icons_spacing,
-                        _area.H / 2 - (tile_size / 2),
+                        Width / 2 - (icons_area_width / 2) + (i * tile_size) + (icons_spacing * i) + icons_spacing,
+                        Height / 2 - (tile_size / 2),
                         tile_size,
                         tile_size
                     )
@@ -117,15 +114,15 @@ namespace BLIT64_Editor
         {
         }
 
-        public override void Draw()
+        public override void Draw(Canvas blitter, IGuiDrawer drawer)
         {
-            var blitter = _blitter;
-
-            var icons_scale = _layout.ToolBoxIconsScale;
+            var icons_scale = AppLayout.Data.ToolBoxIconsScale;
 
             var idx = 0;
 
-            var icon_shadow_offset = _layout.ToolBoxIconsShadowOffset;
+            var icon_shadow_offset = AppLayout.Data.ToolBoxIconsShadowOffset;
+
+            blitter.SetSpriteSheet(_icons);
 
             foreach (var (index, tool_button) in _tool_buttons)
             {
@@ -139,19 +136,17 @@ namespace BLIT64_Editor
                 }
 
                 blitter.Sprite(
-                    _icons,
                     id: idx,
-                    x: _area.X + rect.X,
-                    y: _area.Y + rect.Y + icon_shadow_offset,
+                    x: DrawX + rect.X,
+                    y: DrawY + rect.Y + icon_shadow_offset,
                     tint: Palette.BlackColor,
                     scale: icons_scale
                 );
                 blitter.Sprite(
-                    _icons,
                     id: idx,
-                    x: _area.X + rect.X,
-                    y: _area.Y + rect.Y + icon_offset,
-                    tint: _current_tool_index == index ? (byte)46 : Palette.NoColor,
+                    x: DrawX + rect.X,
+                    y: DrawY + rect.Y + icon_offset,
+                    tint: _current_tool_index == index ? (byte)10 : Palette.NoColor,
                     scale: icons_scale
                 );
 
@@ -160,19 +155,17 @@ namespace BLIT64_Editor
                 if (tool_button.Mode == ToolButton.ToolButtonMode.Tool && _current_tool_index == index)
                 {
                     blitter.Sprite(
-                        _icons, 
                         id:_down_arrow_sprite,  
-                        x:_area.X + rect.X, 
-                        y:_area.Y - _layout.ToolBoxPointerMargin + 2, 
+                        x:DrawX + rect.X, 
+                        y:DrawY - AppLayout.Data.ToolBoxPointerMargin + 2, 
                         tint: Palette.BlackColor, 
                         scale: icons_scale);
 
                     blitter.Sprite(
-                        _icons, 
                         id:_down_arrow_sprite,  
-                        x:_area.X + rect.X, 
-                        y:_area.Y - _layout.ToolBoxPointerMargin, 
-                        tint: 46, 
+                        x:DrawX + rect.X, 
+                        y:DrawY - AppLayout.Data.ToolBoxPointerMargin, 
+                        tint: 10, 
                         scale: icons_scale);
                 }
             }

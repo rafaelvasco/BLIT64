@@ -1,4 +1,5 @@
-﻿namespace BLIT64_Editor
+﻿
+namespace BLIT64
 {
     public enum Orientation
     {

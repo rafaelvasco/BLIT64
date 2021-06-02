@@ -1,6 +1,5 @@
 ﻿
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
 
 namespace BLIT64.Toolkit.Gui
 {
@@ -39,10 +38,6 @@ namespace BLIT64.Toolkit.Gui
 
         private bool _scrolling;
 
-        private int _mouse_x;
-
-        private int _mouse_y;
-
         private int _last_mouse_y;
 
 
@@ -50,7 +45,7 @@ namespace BLIT64.Toolkit.Gui
         {
             Items = new List<ListItem>();
 
-            _max_visible_rows = Height / RowHeight;
+            _max_visible_rows = _height / RowHeight;
         }
 
         public void AddItem(string label, object value)
@@ -68,14 +63,11 @@ namespace BLIT64.Toolkit.Gui
 
         public override void OnMouseMove(int x, int y)
         {
-            _mouse_x = x;
-            _mouse_y = y;
-
             if (_scrolling)
             {
                 HoveredIndex = -1;
 
-                var delta_y = _mouse_y - _last_mouse_y;
+                var delta_y = y - _last_mouse_y;
 
                 TranslateY += delta_y;
 
@@ -89,11 +81,11 @@ namespace BLIT64.Toolkit.Gui
                     TranslateY = _max_translate_y;
                 }
 
-                _last_mouse_y = _mouse_y;
+                _last_mouse_y = y;
             }
             else
             {
-                if (ScrollThumbRect.Contains(_mouse_x, _mouse_y))
+                if (ScrollThumbRect.Translated(0, TranslateY).Contains(x, y))
                 {
                     HoveredIndex = -1;
                 }
@@ -110,13 +102,13 @@ namespace BLIT64.Toolkit.Gui
             
         }
 
-        public override void OnMouseDown(MouseButton button)
+        public override void OnMouseDown(MouseButton button, int x, int y)
         {
-            if (ScrollThumbRect.Contains(_mouse_x, _mouse_y))
+            if (ScrollThumbRect.Translated(0, TranslateY).Contains(x, y))
             {
                 _scrolling = true;
 
-                _last_mouse_y = _mouse_y;
+                _last_mouse_y = y;
             }
             else
             {
@@ -138,7 +130,7 @@ namespace BLIT64.Toolkit.Gui
         }
 
 
-        public override void OnMouseUp(MouseButton button)
+        public override void OnMouseUp(MouseButton button, int x, int y)
         {
             if (_scrolling)
             {
@@ -152,9 +144,9 @@ namespace BLIT64.Toolkit.Gui
             HoveredIndex = -1;
         }
 
-        public override void Draw(Blitter blitter, Theme theme)
+        public override void Draw(Canvas blitter, IGuiDrawer drawer)
         {
-            theme.DrawListView(blitter, this);
+            drawer.DrawListView(blitter, this);
         }
 
         private void UpdateScroll()

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BLIT64_Editor
+namespace BLIT64
 {
     public static class TypedMessager<T> where T : struct
     {

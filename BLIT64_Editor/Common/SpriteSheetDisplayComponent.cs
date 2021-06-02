@@ -1,12 +1,13 @@
 ﻿using BLIT64;
+using BLIT64.Toolkit.Gui;
 
 namespace BLIT64_Editor
 {
-    public abstract class SpriteSheetDisplayComponent : Component
+    public abstract class SpriteSheetDisplayComponent : Container
     {
         protected SpriteSheet CurrentSpritesheet;
 
-        protected SpriteSheetDisplayComponent(Blitter blitter, Rect area) : base(blitter, area)
+        protected SpriteSheetDisplayComponent(string id, int width, int height) : base(id, width, height)
         {
         }
 
@@ -17,12 +18,14 @@ namespace BLIT64_Editor
 
         protected virtual (int X, int Y) GetTransformedMousePos(int x, int y)
         {
-            var scale_factor = (float)_area.W / CurrentSpritesheet.Width;
+            var scale_factor = (float)Width / CurrentSpritesheet.Width;
 
             var sprite_sheet_surface_pos_x = Calc.FastFloorToInt(x / scale_factor);
             var sprite_sheet_surface_pos_y = Calc.FastFloorToInt(y / scale_factor);
 
             return (sprite_sheet_surface_pos_x, sprite_sheet_surface_pos_y);
         }
+
+        
     }
 }

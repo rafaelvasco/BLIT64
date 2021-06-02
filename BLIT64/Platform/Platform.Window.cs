@@ -9,6 +9,32 @@ namespace BLIT64
 
         public static event Action<(int width, int height)> WindowResized;
 
+        public static void ProcessWindowEvent(SDL_Event ev)
+        {
+            switch(ev.window.windowEvent)
+            {
+                case SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
+
+                    var new_w = ev.window.data1;
+                    var new_h = ev.window.data2;
+                    WindowResized?.Invoke((new_w, new_h));
+                    UpdateDisplayScaleFactor();
+                    break;
+
+                case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                    OnQuit?.Invoke();
+                    break;
+
+                case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                    LostFocus?.Invoke();
+                    break;
+
+                case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                    GainedFocus?.Invoke();
+                    break;
+            }
+        }
+
         public static void CreateWindow(string title, int width, int height, bool fullscreen)
         {
             var windowFlags = SDL_WindowFlags.SDL_WINDOW_HIDDEN |
@@ -56,7 +82,7 @@ namespace BLIT64
         {
             if (IsFullscreen() != fullscreen)
             {
-                SDL_SetWindowFullscreen(WindowHandle, (uint) (fullscreen ? WindowFlags.FullscreenDesktop : 0));
+                _ = SDL_SetWindowFullscreen(WindowHandle, (uint)(fullscreen ? WindowFlags.FullscreenDesktop : 0));
             }
         }
 
@@ -94,7 +120,7 @@ namespace BLIT64
 
         public static void ShowCursor(bool show)
         {
-            SDL_ShowCursor(show ? 1 : 0);
+            _ = SDL_ShowCursor(show ? 1 : 0);
         }
 
         public static bool CursorVisible()

@@ -1,29 +1,6 @@
 ﻿
 namespace BLIT64.Toolkit.Gui
 {
-    public class WindowCloseButton : Button
-    {
-        public WindowCloseButton(string id, string label, int width = DefaultWidth, int height = DefaultHeight) : base(id, label, width, height)
-        {
-        }
-
-        public override void OnMouseDown(MouseButton button)
-        {
-            _label.OffsetY = 1;
-        }
-
-        public override void OnMouseUp(MouseButton button)
-        {
-            _label.OffsetY = 0;
-        }
-
-        public override void Draw(Blitter blitter, Theme theme)
-        {
-            theme.DrawWindowCloseButton(blitter, this);
-
-            DrawChildren(blitter, theme);
-        }
-    }
 
     public class Window : Container
     {
@@ -34,19 +11,19 @@ namespace BLIT64.Toolkit.Gui
         }
 
 
-        protected readonly WindowCloseButton _close_button;
+        protected readonly Button _close_button;
         protected Label _label;
 
         public Window(string id, int width, int height, string title = "Window") : base(id, width, height)
         {
-            _close_button = new WindowCloseButton(id + "_close_button", "X", 30, 30)
+            _close_button = new Button(id + "_close_button", "X", 30, 30)
             {
                 CanHaveInputFocus = false
             };
 
             _label = new Label(id + "_label", title)
             {
-                Width = this.Width, 
+                Width = _width, 
                 Height = 30,
                 IgnoreInput = true
             };
@@ -76,11 +53,11 @@ namespace BLIT64.Toolkit.Gui
             Ui.SetVisible(this, false);
         }
 
-        public override void Draw(Blitter blitter, Theme theme)
+        public override void Draw(Canvas blitter, IGuiDrawer drawer)
         {
-            theme.DrawWindow(blitter, this);
+            drawer.DrawWindow(blitter, this);
 
-            base.Draw(blitter, theme);
+            DrawChildren(blitter, drawer);
         }
     }
 }

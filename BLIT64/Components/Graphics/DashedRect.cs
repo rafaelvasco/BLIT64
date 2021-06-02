@@ -15,14 +15,14 @@ namespace BLIT64
         private int _animation_timer;
         
 
-        public override void Draw(Blitter blitter, int x, int y, int w, int h)
+        public override void Draw(Canvas blitter, int x, int y, int w, int h)
         {
-            blitter.RectBorderDashed(
+            blitter.SetColor(Color);
+            blitter.RectDashed(
                 x,
                 y,
                 w,
                 h,
-                Color,
                 LineSize,
                 _dash_offset,
                 DashSize

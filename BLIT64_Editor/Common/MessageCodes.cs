@@ -12,5 +12,6 @@ namespace BLIT64_Editor.Common
         public const int SpriteNavigatorCursorSizeChanged = 7;
         public const int SpriteSheetEditorBrushSizeChanged = 8;
         public const int ToolTriggered = 9;
+        public const int SpriteIdChanged = 10;
     }
 }

@@ -15,6 +15,9 @@ namespace BLIT64.Toolkit.Gui
                 {
                     _scale = 1;
                 }
+                TextMeasure = Canvas.TextMeasure(_text, _scale);
+                _width = TextMeasure.W;
+                _height = TextMeasure.H;
             }
         }
 
@@ -26,7 +29,7 @@ namespace BLIT64.Toolkit.Gui
                 _text = value;
                 if (!string.IsNullOrEmpty(_text))
                 {
-                    TextMeasure = Game.Instance.Blitter.TextMeasure(_text, _scale);
+                    TextMeasure = Canvas.TextMeasure(_text, _scale);
                 }
             }
         }
@@ -36,17 +39,15 @@ namespace BLIT64.Toolkit.Gui
 
         public (int W, int H) TextMeasure { get; private set; }
 
-        public Label(string id, string text) : base(id, 0, 0)
+        public Label(string id, string text, int scale = 1) : base(id, 0, 0)
         {
             Text = text;
-
-            Width = TextMeasure.W;
-            Height = TextMeasure.H;
+            Scale = scale;
         }
 
-        public override void Draw(Blitter blitter, Theme theme)
+        public override void Draw(Canvas blitter, IGuiDrawer drawer)
         {
-            theme.DrawLabel(blitter, this);
+            drawer.DrawLabel(blitter, this);
         }
     }
 }

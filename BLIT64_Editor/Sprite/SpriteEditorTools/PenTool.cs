@@ -1,4 +1,5 @@
-﻿using BLIT64;
+﻿using System;
+using BLIT64;
 
 namespace BLIT64_Editor
 {
@@ -67,18 +68,21 @@ namespace BLIT64_Editor
             var button = @params.MouseButton;
             var paint_color = button == MouseButton.Left ? @params.PaintColor : (byte)0;
 
-
-
             blitter.SetSurface(sheet);
             blitter.Clip(@params.SourceRect);
 
+            blitter.SetColor(paint_color);
+
             if (_last_x != x || _last_y != y)
             {
-                blitter.Line(_last_x, _last_y, x, y, BrushSize, paint_color);
+                if (x < @params.SourceRect.Right - 1 && y < @params.SourceRect.Bottom - 1)
+                {
+                    blitter.Line(_last_x, _last_y, x, y, BrushSize);
+                }
             }
             else
             {
-                blitter.Rect(x, y, _brush_size, _brush_size, paint_color);
+                blitter.RectFill(x, y, _brush_size, _brush_size);
             }
 
             

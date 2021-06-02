@@ -40,13 +40,14 @@ namespace Demo
 
             if (Input.KeyPressed(Key.Space))
             {
-                Game.SetPalette(Game.CurrentPalette == Palettes.Journey ? Palettes.Famicube : Palettes.Journey);
+                
             }
         }
 
-        public override void Draw(Blitter blitter)
+        public override void Draw(Canvas canvas)
         {
-            blitter.Rect(x, y, w, h, col);
+            canvas.SetColor(col);
+            canvas.RectFill(x, y, w, h);
         }
     }
 }

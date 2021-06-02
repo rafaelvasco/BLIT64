@@ -4,7 +4,7 @@ namespace BLIT64_Editor
 {
     public class ToolActionParams
     {
-        public Blitter Blitter;
+        public Canvas Blitter;
         public Pixmap Overlay;
         public SpriteSheet SpriteSheet;
         public Rect SourceRect;
@@ -23,6 +23,8 @@ namespace BLIT64_Editor
         public abstract int BrushSize { get; set; }
 
         public abstract bool UseVariableBrushSize { get; }
+
+        public bool ShowCursor { get; set; } = true;
 
         public abstract void OnMouseDown(ToolActionParams @params);
 

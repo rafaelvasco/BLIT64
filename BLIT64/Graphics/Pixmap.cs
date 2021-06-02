@@ -1,7 +1,4 @@
 ﻿
-using System;
-using System.Collections.Generic;
-
 namespace BLIT64
 {
     public class Pixmap : GameAsset
@@ -31,7 +28,7 @@ namespace BLIT64
 
             Height = height;
 
-            var current_palette = Game.Instance.CurrentPalette;
+            var current_palette = Game.Instance.Canvas.BasePalette;
 
             var this_colors_index = 0;
 
