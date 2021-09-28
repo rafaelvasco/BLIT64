@@ -40,7 +40,6 @@ namespace Demo
 
             if (Input.KeyPressed(Key.Space))
             {
-                
             }
         }
 

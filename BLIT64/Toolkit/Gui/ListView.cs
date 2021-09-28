@@ -144,9 +144,9 @@ namespace BLIT64.Toolkit.Gui
             HoveredIndex = -1;
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
-            drawer.DrawListView(blitter, this);
+            drawer.DrawListView(canvas, this);
         }
 
         private void UpdateScroll()

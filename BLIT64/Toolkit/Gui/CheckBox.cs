@@ -83,11 +83,11 @@ namespace BLIT64.Toolkit.Gui
             }
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
-            drawer.DrawCheckbox(blitter, this);
+            drawer.DrawCheckbox(canvas, this);
 
-            DrawChildren(blitter, drawer);
+            DrawChildren(canvas, drawer);
         }
     }
 }

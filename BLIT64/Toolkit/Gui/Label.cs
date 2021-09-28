@@ -3,7 +3,7 @@ namespace BLIT64.Toolkit.Gui
 {
     public class Label : Widget
     {
-        public byte Color { get; set; }
+        public int Color { get; set; }
 
         public int Scale
         {
@@ -45,9 +45,9 @@ namespace BLIT64.Toolkit.Gui
             Scale = scale;
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
-            drawer.DrawLabel(blitter, this);
+            drawer.DrawLabel(canvas, this);
         }
     }
 }

@@ -114,7 +114,7 @@ namespace BLIT64_Editor
         {
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
             var icons_scale = AppLayout.Data.ToolBoxIconsScale;
 
@@ -122,7 +122,7 @@ namespace BLIT64_Editor
 
             var icon_shadow_offset = AppLayout.Data.ToolBoxIconsShadowOffset;
 
-            blitter.SetSpriteSheet(_icons);
+            canvas.SetSpriteSheet(_icons);
 
             foreach (var (index, tool_button) in _tool_buttons)
             {
@@ -135,18 +135,21 @@ namespace BLIT64_Editor
                     icon_offset = icon_shadow_offset;
                 }
 
-                blitter.Sprite(
+                canvas.SetTintColor(27);
+
+                canvas.Sprite(
                     id: idx,
                     x: DrawX + rect.X,
                     y: DrawY + rect.Y + icon_shadow_offset,
-                    tint: Palette.BlackColor,
                     scale: icons_scale
                 );
-                blitter.Sprite(
+
+                canvas.SetTintColor(_current_tool_index == index ? 10 : Palette.NullColor);
+
+                canvas.Sprite(
                     id: idx,
                     x: DrawX + rect.X,
                     y: DrawY + rect.Y + icon_offset,
-                    tint: _current_tool_index == index ? (byte)10 : Palette.NoColor,
                     scale: icons_scale
                 );
 
@@ -154,19 +157,26 @@ namespace BLIT64_Editor
 
                 if (tool_button.Mode == ToolButton.ToolButtonMode.Tool && _current_tool_index == index)
                 {
-                    blitter.Sprite(
+
+                    canvas.SetTintColor(27);
+
+                    canvas.Sprite(
                         id:_down_arrow_sprite,  
                         x:DrawX + rect.X, 
                         y:DrawY - AppLayout.Data.ToolBoxPointerMargin + 2, 
-                        tint: Palette.BlackColor, 
                         scale: icons_scale);
 
-                    blitter.Sprite(
+
+                    canvas.SetTintColor(10);
+
+                    canvas.Sprite(
                         id:_down_arrow_sprite,  
                         x:DrawX + rect.X, 
                         y:DrawY - AppLayout.Data.ToolBoxPointerMargin, 
-                        tint: 10, 
                         scale: icons_scale);
+
+                    canvas.SetTintColor(Palette.NullColor);
+                        
                 }
             }
         }

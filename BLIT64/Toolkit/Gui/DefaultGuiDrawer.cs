@@ -4,34 +4,34 @@ namespace BLIT64.Toolkit.Gui
 {
     public class DefaultGuiDrawer : IGuiDrawer
     {
-        public byte TextColor = Palette.WhiteColor;
-        public byte TextShadowColor = Palette.BlackColor;
+        public int TextColor = 35;
+        public int TextShadowColor = 28;
 
-        public byte PanelColor = 38;
-        public byte PanelBorderColor = Palette.BlackColor;
-        public byte PanelBorderSize = 2;
+        public int PanelColor = 38;
+        public int PanelBorderColor = 28;
+        public int PanelBorderSize = 2;
 
-        public byte WindowColor = 38;
+        public int WindowColor = 38;
         public int WindowHeaderHeight = 30;
-        public byte WindowHeaderColor = 11;
-        public byte WindowCloseButtonColor = 12;
-        public byte WindowCloseButtonHoverColor = 10;
-        public byte WindowCloseButtonActiveColor = 12;
+        public int WindowHeaderColor = 11;
+        public int WindowCloseButtonColor = 12;
+        public int WindowCloseButtonHoverColor = 10;
+        public int WindowCloseButtonActiveColor = 12;
 
-        public byte ButtonColor = 12;
-        public byte ButtonHoverColor = 11;
-        public byte ButtonActiveColor = 12;
+        public int ButtonColor = 12;
+        public int ButtonHoverColor = 11;
+        public int ButtonActiveColor = 12;
 
-        public byte CheckboxColor = 39;
-        public byte CheckboxBorderColor = 40;
-        public byte CheckboxIndicatorColor = 11;
+        public int CheckboxColor = 39;
+        public int CheckboxBorderColor = 40;
+        public int CheckboxIndicatorColor = 11;
 
-        public byte TabHeaderColor = 40;
+        public int TabHeaderColor = 40;
 
-        public byte ListViewBgColor = 40;
-        public byte ListViewRowColor = 39;
-        public byte ListViewRowHoverColor = 12;
-        public byte ListViewRowSelectedColor = 11;
+        public int ListViewBgColor = 40;
+        public int ListViewRowColor = 39;
+        public int ListViewRowHoverColor = 12;
+        public int ListViewRowSelectedColor = 11;
 
         public void DrawButton(Canvas blitter, Button button)
         {
@@ -143,7 +143,7 @@ namespace BLIT64.Toolkit.Gui
             for (int i = 0; i < steps; ++i)
             {
                 var option_rect = options[i].Rect;
-                blitter.SetColor(Palette.BlackColor);
+                blitter.SetColor(28);
                 blitter.RectFill(
                     draw_x + option_rect.X, 
                     draw_y + option_rect.Y, 
@@ -157,15 +157,15 @@ namespace BLIT64.Toolkit.Gui
             switch (selector_slider.Orientation)
             {
                 case Orientation.Horizontal:
-                    blitter.SetColor(Palette.WhiteColor);
+                    blitter.SetColor(35);
                     blitter.RectFill(draw_x + thumb_size/2 + 2, draw_y + thumb_size/2 -1, width - thumb_size/2 - 4, 2);
-                    blitter.SetColor(Palette.BlackColor);
+                    blitter.SetColor(28);
                     blitter.Rect(draw_x + thumb_size/2 + 2, draw_y + thumb_size/2 - 1, width - thumb_size/2 - 4, 2, 2);
                     break;
                 case Orientation.Vertical:
-                    blitter.SetColor(Palette.WhiteColor);
+                    blitter.SetColor(35);
                     blitter.RectFill(draw_x + thumb_size/2 + 2  , draw_y + thumb_size/2 -1, 2, height - thumb_size/2 - 4);
-                    blitter.SetColor(Palette.BlackColor);
+                    blitter.SetColor(28);
                     blitter.Rect(draw_x + thumb_size/2 + 2  , draw_y + thumb_size/2 -1, 2, height - thumb_size/2 - 4, 2);
                     break;
             }
@@ -174,7 +174,7 @@ namespace BLIT64.Toolkit.Gui
 
             // Draw Slider
 
-            blitter.SetColor(Palette.WhiteColor);
+            blitter.SetColor(35);
             blitter.RectFill(
                 draw_x + current_option_rect.X,
                 draw_y + current_option_rect.Y,
@@ -182,7 +182,7 @@ namespace BLIT64.Toolkit.Gui
                 current_option_rect.H
             );
 
-            blitter.SetColor(Palette.BlackColor);
+            blitter.SetColor(28);
             blitter.Rect(
                 draw_x + current_option_rect.X,
                 draw_y + current_option_rect.Y,
@@ -205,7 +205,7 @@ namespace BLIT64.Toolkit.Gui
         }
 
         
-        private static void DrawPanel(Canvas blitter, int x, int y, int w, int h, byte color, byte border_color, int border_size)
+        private static void DrawPanel(Canvas blitter, int x, int y, int w, int h, int color, int border_color, int border_size)
         {
             blitter.SetColor(color);
             blitter.RectFill(x, y, w, h);
@@ -222,8 +222,8 @@ namespace BLIT64.Toolkit.Gui
             int h, 
             int text_w, 
             int text_h, 
-            byte color, 
-            byte shadow_color,
+            int color, 
+            int shadow_color,
             int scale = 1)
         {
             int draw_x = x + w / 2 - text_w / 2;
@@ -235,7 +235,7 @@ namespace BLIT64.Toolkit.Gui
             blitter.Text(draw_x, draw_y, text, scale);
         }
 
-        private static void DrawInsetPanel(Canvas blitter, int x, int y, int w, int h, byte color, byte border_color, int border_size)
+        private static void DrawInsetPanel(Canvas blitter, int x, int y, int w, int h, int color, int border_color, int border_size)
         {
             blitter.SetColor(color);
             blitter.RectFill(x, y, w, h);

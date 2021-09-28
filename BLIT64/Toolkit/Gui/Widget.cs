@@ -275,7 +275,7 @@ namespace BLIT64.Toolkit.Gui
 
         public virtual void Update() {}
 
-        public abstract void Draw(Canvas blitter, IGuiDrawer drawer);
+        public abstract void Draw(Canvas canvas, IGuiDrawer drawer);
 
         public int CompareTo(Widget other)
         {

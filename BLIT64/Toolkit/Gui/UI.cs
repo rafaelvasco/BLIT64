@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BLIT64.Toolkit.Gui
 {
-    public partial class UI
+    public class UI
     {
         public Widget HoveredWidget { get; private set; }
 
@@ -33,6 +33,10 @@ namespace BLIT64.Toolkit.Gui
         private int _mouse_x;
         private int _mouse_y;
 
+        private bool _invalidated = true;
+
+        private int _draw_count = 0;
+
 
         public UI()
         {
@@ -54,18 +58,7 @@ namespace BLIT64.Toolkit.Gui
 
         }
 
-        public Widget this[string id]
-        {
-            get
-            {
-                if (_map.TryGetValue(id, out var index))
-                {
-                    return _widgets[index];
-                }
-
-                return null;
-            }
-        }
+        public Widget this[string id] => _map.TryGetValue(id, out var index) ? _widgets[index] : null;
 
         public void Add(Widget widget)
         {
@@ -78,12 +71,14 @@ namespace BLIT64.Toolkit.Gui
             ReorderWidgets();
         }
 
+        public void Refresh()
+        {
+            _invalidated = true;
+        }
+
         public void SetProcess(Widget widget, bool process)
         {
-            if (_updatable_widgets == null)
-            {
-                _updatable_widgets = new List<Widget>();
-            }
+            _updatable_widgets ??= new List<Widget>();
 
             if (process)
             {
@@ -168,20 +163,32 @@ namespace BLIT64.Toolkit.Gui
 
         public void Draw(Canvas blitter)
         {
-            _root.Draw(blitter, Drawer);
-
-            if (DrawStats)
+            if (_invalidated)
             {
-                blitter.SetColor(Palette.BlackColor);
-                blitter.Text(10, 10, $"Hovered: {HoveredWidget?.Id ?? "None"}", 1);
-                blitter.Text(10, 20, $"Active: {ActiveWidget?.Id ?? "None"}", 1);
-                blitter.Text(10, 30, $"Input Focused: {InputFocusedWidget?.Id ?? "None"}", 1);
+                _draw_count += 1;
 
-                for (int i = 0; i < _widgets.Count; ++i)
+                _root.Draw(blitter, Drawer);
+
+                if (DrawStats)
                 {
-                    var w = _widgets[i];
-                    blitter.Text(10,  50 + (i)*10, $"{w.Id} [ZIndex: {w.ZIndex}]", 1);
+                    blitter.SetColor(Palette.DefaultDarkColor);
+                    blitter.RectFill(0, 0, 300, 300);
+
+                    blitter.SetColor(Palette.DefaultLightColor);
+                    blitter.Text(10, 10, $"Hovered: {HoveredWidget?.Id ?? "None"}");
+                    blitter.Text(10, 20, $"Active: {ActiveWidget?.Id ?? "None"}");
+                    blitter.Text(10, 30, $"Input Focused: {InputFocusedWidget?.Id ?? "None"}");
+                    blitter.Text(10, 40, $"UI Draw Count: {_draw_count}");
+
+
+                    //for (int i = 0; i < _widgets.Count; ++i)
+                    //{
+                    //    var w = _widgets[i];
+                    //    blitter.Text(10,  50 + (i)*10, $"{w.Id} [ZIndex: {w.ZIndex}]");
+                    //}
                 }
+
+                _invalidated = false;
             }
         }
 
@@ -198,7 +205,7 @@ namespace BLIT64.Toolkit.Gui
             }
             else
             {
-                List<string> empty_groups = new List<string>();
+                var empty_groups = new List<string>();
 
                 foreach (var toggle_group in _toggle_groups)
                 {
@@ -300,11 +307,15 @@ namespace BLIT64.Toolkit.Gui
         private void ProcessKeyUp(Key key)
         {
             InputFocusedWidget?.ProcessKeyUp(key);
+
+            Refresh();
         }
 
         private void ProcessKeyDown(Key key)
         {
             InputFocusedWidget?.ProcessKeyDown(key);
+
+            Refresh();
         }
 
         private void ProcessMouseMove()
@@ -380,6 +391,8 @@ namespace BLIT64.Toolkit.Gui
 
             _last_mouse_x = _mouse_x;
             _last_mouse_y = _mouse_y;
+
+            Refresh();
         }
 
         private void ProcessMouseUp(MouseButton button)
@@ -398,6 +411,8 @@ namespace BLIT64.Toolkit.Gui
 
             ActiveWidget.Active = false;
             ActiveWidget = null;
+
+            Refresh();
         }
 
         private void ProcessMouseDown(MouseButton button)
@@ -414,14 +429,15 @@ namespace BLIT64.Toolkit.Gui
 
             if (button == MouseButton.Left)
             {
-                if (ActiveWidget.Toggable && ActiveWidget.ToggleGroup == null)
+                switch (ActiveWidget.Toggable)
                 {
-                    ActiveWidget.On = !ActiveWidget.On;
-                }
-                else if (ActiveWidget.Toggable && ActiveWidget.ToggleGroup != null)
-                {
-                    ActiveWidget.On = true;
-                    UpdateToggleGroup(ActiveWidget);
+                    case true when ActiveWidget.ToggleGroup == null:
+                        ActiveWidget.On = !ActiveWidget.On;
+                        break;
+                    case true when ActiveWidget.ToggleGroup != null:
+                        ActiveWidget.On = true;
+                        UpdateToggleGroup(ActiveWidget);
+                        break;
                 }
 
                 if (InputFocusedWidget != null)
@@ -443,6 +459,8 @@ namespace BLIT64.Toolkit.Gui
 
             _last_mouse_x = _mouse_x;
             _last_mouse_y = _mouse_y;
+
+            Refresh();
         }
 
 

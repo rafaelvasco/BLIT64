@@ -10,7 +10,7 @@ namespace BLIT64
         public readonly byte B;
         public readonly byte A;
 
-        private static Color _empty = new Color(0, 0, 0, 0);
+        private static Color _empty = new(0, 0, 0, 0);
 
         public static ref Color Empty => ref _empty; 
 

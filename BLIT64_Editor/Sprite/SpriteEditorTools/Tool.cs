@@ -4,7 +4,7 @@ namespace BLIT64_Editor
 {
     public class ToolActionParams
     {
-        public Canvas Blitter;
+        public Canvas Canvas;
         public Pixmap Overlay;
         public SpriteSheet SpriteSheet;
         public Rect SourceRect;

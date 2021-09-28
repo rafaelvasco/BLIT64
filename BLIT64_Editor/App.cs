@@ -1,5 +1,6 @@
 ﻿using BLIT64;
 using BLIT64.Toolkit.Gui;
+using BLIT64_Editor.Common;
 
 namespace BLIT64_Editor
 {
@@ -37,9 +38,9 @@ namespace BLIT64_Editor
             _gui.Update();
         }
 
-        public override void Draw(Canvas blitter)
+        public override void Draw(Canvas canvas)
         {
-            _gui.Draw(blitter);
+            _gui.Draw(canvas);
         }
     }
 }

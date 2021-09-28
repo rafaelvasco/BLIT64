@@ -7,11 +7,11 @@ namespace BLIT64.Toolkit.Gui
         {
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
-            drawer.DrawPanel(blitter, this);
+            drawer.DrawPanel(canvas, this);
 
-            DrawChildren(blitter, drawer);
+            DrawChildren(canvas, drawer);
         }
     }
 }

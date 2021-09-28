@@ -15,6 +15,8 @@ namespace Demo
                 DrawStats = false
             };
 
+            Canvas.DrawDebugInfo = false;
+
             var tabs = new Tabs("tabs", Game.Canvas.Width, Game.Canvas.Height, 200, 20);
 
             var panel1 = tabs.AddTab("Window");
@@ -74,6 +76,8 @@ namespace Demo
             ui.Add(window);
 
             button_panel_1.OnClick += () => { window.ShowAndFocus(); };
+
+            ui.Draw(Canvas);
         }
 
         public override void Update()
@@ -81,14 +85,13 @@ namespace Demo
             if (Input.KeyPressed(Key.D))
             {
                 ui.DrawStats = !ui.DrawStats;
+                Canvas.DrawDebugInfo = !Canvas.DrawDebugInfo;
             }
         }
 
-        public override void Draw(Canvas blitter)
+        public override void Draw(Canvas canvas)
         {
-            blitter.Clear();
-
-            ui.Draw(blitter);
+            ui.Draw(canvas);
         }
     }
 }

@@ -3,7 +3,7 @@ namespace BLIT64
 {
     public class DashedRect : Graphic
     {
-        public byte Color { get; set; } = Palette.WhiteColor;
+        public int Color { get; set; } = 35;
 
         public int AnimDelay { get; set; } = 3;
 

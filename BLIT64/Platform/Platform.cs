@@ -139,7 +139,7 @@ namespace BLIT64
         private static void Ensure64BitArchitecture()
         {
             var runtime_architecture = RuntimeInformation.OSArchitecture;
-            if (runtime_architecture == Architecture.Arm || runtime_architecture == Architecture.X86)
+            if (runtime_architecture is Architecture.Arm or Architecture.X86)
             {
                  throw new NotSupportedException("32-bit architecture is not supported.");
             }

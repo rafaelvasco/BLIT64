@@ -1,16 +1,42 @@
-﻿namespace BLIT64
+﻿using System;
+
+namespace BLIT64
 {
-    public abstract class GameAsset
+    public abstract class GameAsset : IDisposable
     {
-        protected bool disposed = false;
+        private bool _disposedValue;
 
-        public string Id { get; internal set; }
+        public string Id {get; internal set;}
 
-        protected abstract void Dispose(bool disposing);
-
-        internal void Dispose()
+        private void InternalFree(bool disposing)
         {
-            Dispose(true);
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    FreeManaged();
+                }
+
+                FreeUnmanaged();
+
+                _disposedValue = true;
+            }
+        }
+
+        protected virtual void FreeManaged() {}
+
+        protected virtual void FreeUnmanaged() {}
+
+        ~GameAsset()
+        {
+            InternalFree(disposing: false);
+            throw new Exception("Resource Leak");
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            InternalFree(disposing: true);
         }
     }
 }

@@ -8,11 +8,12 @@ namespace BLIT64
 {
     public static class Assets
     {
-        private static readonly Dictionary<string, GameAsset> _game_assets = new Dictionary<string, GameAsset>();
-        private static readonly Dictionary<string, GameAsset> _embedded_assets = new Dictionary<string, GameAsset>();
-        private static readonly List<GameAsset> _runtime_assets = new List<GameAsset>();
+        private static readonly Dictionary<string, GameAsset> _game_assets = new();
+        private static readonly Dictionary<string, GameAsset> _embedded_assets = new();
+        private static readonly List<GameAsset> _runtime_assets = new();
         
-        public static string RootPath = "Assets";
+        public static string RootPath { get; set; } = "Assets";
+
         private const string EmbeddedAssetsNamespace = "BLIT64.Embedded.";
         private const string CommonAssetsFileName = "CommonAssets.pak";
 
@@ -126,9 +127,9 @@ namespace BLIT64
             if (sheet_data.SpriteMap.Count > 0)
             {
 
-                foreach (var sprite_pair in sheet_data.SpriteMap)
+                foreach (var (name, index) in sheet_data.SpriteMap)
                 {
-                    sheet.MapNamedSprite(sprite_pair.Key, sprite_pair.Value);
+                    sheet.MapNamedSprite(name, index);
                 }
             }
 

@@ -3,7 +3,7 @@ namespace BLIT64
 {
     public struct KeyState
     {
-        private static readonly Key[] Empty = new Key[0];
+        private static readonly Key[] Empty = System.Array.Empty<Key>();
 
         private uint _keys0, _keys1, _keys2, _keys3, _keys4, _keys5, _keys6, _keys7;
 
@@ -27,19 +27,18 @@ namespace BLIT64
         {
             uint mask = (uint)1 << (((int)key) & 0x1f);
 
-            uint element;
-            switch (((int)key) >> 5)
+            uint element = (((int) key) >> 5) switch
             {
-                case 0: element = _keys0; break;
-                case 1: element = _keys1; break;
-                case 2: element = _keys2; break;
-                case 3: element = _keys3; break;
-                case 4: element = _keys4; break;
-                case 5: element = _keys5; break;
-                case 6: element = _keys6; break;
-                case 7: element = _keys7; break;
-                default: element = 0; break;
-            }
+                0 => _keys0,
+                1 => _keys1,
+                2 => _keys2,
+                3 => _keys3,
+                4 => _keys4,
+                5 => _keys5,
+                6 => _keys6,
+                7 => _keys7,
+                _ => 0
+            };
 
             return (element & mask) != 0;
         }
@@ -111,7 +110,8 @@ namespace BLIT64
                     + CountBits(_keys4) + CountBits(_keys5) + CountBits(_keys6) + CountBits(_keys7);
             if (count == 0)
                 return Empty;
-            Key[] keys = new Key[count];
+
+            var keys = new Key[count];
 
             int index = 0;
             if (_keys0 != 0) index = AddKeysToArray(_keys0, 0 * 32, keys, index);
@@ -121,7 +121,7 @@ namespace BLIT64
             if (_keys4 != 0) index = AddKeysToArray(_keys4, 4 * 32, keys, index);
             if (_keys5 != 0) index = AddKeysToArray(_keys5, 5 * 32, keys, index);
             if (_keys6 != 0) index = AddKeysToArray(_keys6, 6 * 32, keys, index);
-            if (_keys7 != 0) index = AddKeysToArray(_keys7, 7 * 32, keys, index);
+            if (_keys7 != 0) AddKeysToArray(_keys7, 7 * 32, keys, index);
 
             return keys;
         }
@@ -150,14 +150,14 @@ namespace BLIT64
 
         public override bool Equals(object obj)
         {
-            return obj is KeyState && this == (KeyState)obj;
+            return obj is KeyState state && this == state;
         }
 
         private static uint CountBits(uint v)
         {
             // This uses some complete magic from:
             // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-            v = v - ((v >> 1) & 0x55555555);                    // reuse input as temporary
+            v -= ((v >> 1) & 0x55555555);                    // reuse input as temporary
             v = (v & 0x33333333) + ((v >> 2) & 0x33333333);     // temp
             return ((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24; // count
         }

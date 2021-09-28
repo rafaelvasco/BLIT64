@@ -99,11 +99,11 @@ namespace BLIT64.Toolkit.Gui
             _label.OffsetY = OffsetY;
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
-            drawer.DrawButton(blitter, this);
+            drawer.DrawButton(canvas, this);
 
-            DrawChildren(blitter, drawer);
+            DrawChildren(canvas, drawer);
         }
     }
 }

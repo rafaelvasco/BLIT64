@@ -5,10 +5,10 @@ namespace Demo
 {
     public class Scene3 : Scene
     {
-        private float pi_8 = (float)(Math.PI / 8);
-        private float pi_2 = (float)(Math.PI * 2);
+        private const float pi_8 = (float) (Math.PI / 8);
+        private const float pi_2 = (float) (Math.PI * 2);
         private float t;
-        private int size = 350;
+        private const int size = 350;
 
         public override void Load()
         {
@@ -19,40 +19,40 @@ namespace Demo
             t += 0.5f;
         }
 
-        public override void Draw(Canvas blitter)
+        public override void Draw(Canvas canvas)
         {
-            blitter.Clear();
+            canvas.Clear();
 
             // Lines
             for (float i = t % 8; i < size; i += 8)
             {
-                blitter.SetColor(33);
-                blitter.Line((int)i, 0, 0, (int)(size - i), 1);
+                canvas.SetColor(33);
+                canvas.Line((int)i, 0, 0, (int)(size - i));
 
-                blitter.SetColor(9);
-                blitter.Line((int)i, size, size, (int)(size - i), 1);
+                canvas.SetColor(9);
+                canvas.Line((int)i, size, size, (int)(size - i));
             }
 
             // Prism
 
-            blitter.SetColor(Palette.WhiteColor);
+            canvas.SetColor(35);
             for (float i = (t / 64) % pi_8; i < pi_2; i += pi_8)
             {
                 var x = (size / 2f) + (size / 4f) * Math.Cos(i);
                 var y = (size / 2f) + (size / 4f) * Math.Cos(i);
-                blitter.Line(size, 0, (int)x, (int)y, 1);
-                blitter.Line(0, size, (int)x, (int)y, 1);
+                canvas.Line(size, 0, (int)x, (int)y);
+                canvas.Line(0, size, (int)x, (int)y);
             }
 
             // Border
 
-            blitter.SetColor(33);
-            blitter.Line(0, 0, size, 0, 1);
-            blitter.Line(0, 0, 0, size, 1);
+            canvas.SetColor(33);
+            canvas.Line(0, 0, size, 0);
+            canvas.Line(0, 0, 0, size);
 
-            blitter.SetColor(9);
-            blitter.Line(size, 0, size, size, 1);
-            blitter.Line(0, size, size, size, 1);
+            canvas.SetColor(9);
+            canvas.Line(size, 0, size, size);
+            canvas.Line(0, size, size, size);
 
         }
     }

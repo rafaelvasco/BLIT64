@@ -9,7 +9,7 @@
 
         public abstract void Update();
 
-        public abstract void Draw(Canvas blitter);
+        public abstract void Draw(Canvas canvas);
 
     }
 
@@ -23,7 +23,7 @@
         {
         }
 
-        public override void Draw(Canvas blitter)
+        public override void Draw(Canvas canvas)
         {
         }
     }
@@ -38,7 +38,7 @@
         {
         }
 
-        public override void Draw(Canvas blitter)
+        public override void Draw(Canvas canvas)
         {
         }
     }

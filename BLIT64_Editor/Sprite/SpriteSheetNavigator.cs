@@ -14,7 +14,7 @@ namespace BLIT64_Editor
         private int _last_cursor_x;
         private int _last_cursor_y;
         private bool _mouse_down;
-        private AppLayout.LayoutData _layout = AppLayout.Data;
+        private readonly AppLayout.LayoutData _layout = AppLayout.Data;
 
         public SpriteSheetNavigator(string id, int width, int height, Rect source_rect) : base(id, width, height)
         {
@@ -139,16 +139,16 @@ namespace BLIT64_Editor
         {
             var panel_border_size = _layout.NavigatorPanelBorder;
 
-            canvas.SetColor(Palette.WhiteColor);
+            canvas.SetColor(35);
 
             canvas.Text(DrawX + _layout.NavigatorFrameLabelOffsetX, DrawY + _layout.NavigatorFrameLabelOffsetY, $"Frame: {_current_source_rect.W}x{_current_source_rect.H}");
 
-            canvas.SetColor(Palette.BlackColor);
+            canvas.SetColor(AppColors.BackColor);
             canvas.RectFill(DrawX, DrawY, Width, Height);
 
             canvas.Pixmap(CurrentSpritesheet, DrawX, DrawY, Rect.Empty, Width, Height);
 
-            canvas.SetColor(Palette.WhiteColor);
+            canvas.SetColor(AppColors.BorderColor);
             canvas.Rect(DrawX, DrawY, Width, Height, panel_border_size);
 
             var scale_factor = Width / CurrentSpritesheet.Width;
@@ -161,7 +161,7 @@ namespace BLIT64_Editor
                 1 * scale_factor
             );
 
-            canvas.SetColor(Palette.BlackColor);
+            canvas.SetColor(AppColors.BackColor);
             canvas.RectFill(
                     x: DrawX - panel_border_size,
                     y: DrawY + Height + panel_border_size,

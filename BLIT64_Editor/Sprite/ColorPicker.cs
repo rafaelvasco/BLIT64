@@ -26,18 +26,18 @@ namespace BLIT64_Editor
         public static readonly int CellSpacing = 2;
         
 
-        private int _current_palette;
+        private ColorGroup _current_palette;
         private int _cell_size;
         private ColorCell[] _color_cells;
-        private Button _choose_palette_button;
+        private readonly Button _choose_palette_button;
         private bool _mouse_down;
 
 
         public ColorPicker(string id) : base(id, AppLayout.Data.ColorPickerWidth, 0)
         {
-            _current_palette = 1;
-
             BuildColorCells();
+
+            _current_palette = ColorGroup.Group1;
 
             _choose_palette_button = new Button("choose_palette_button", "P", 10, Height-2);
 
@@ -104,16 +104,17 @@ namespace BLIT64_Editor
         {
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
-            blitter.BeginDraw(_current_palette);
-            blitter.Clip(DrawX, DrawY, Width, Height);
+            Palette.SetColorGroup(_current_palette);
 
-            blitter.SetColor(Palette.WhiteColor);
-            blitter.RectFill(DrawX, DrawY, Width, Height);
+            canvas.Clip(DrawX, DrawY, Width, Height);
 
-            blitter.SetColor(Palette.BlackColor);
-            blitter.RectFill(
+            canvas.SetColor(32);
+            canvas.RectFill(DrawX, DrawY, Width, Height);
+
+            canvas.SetColor(27);
+            canvas.RectFill(
                 x: DrawX, 
                 y: DrawY + Height, 
                 w: Width, 
@@ -124,8 +125,8 @@ namespace BLIT64_Editor
             {
                 var cell = _color_cells[i];
 
-                blitter.SetColor(cell.Color);
-                blitter.RectFill(
+                canvas.SetColor(cell.Color);
+                canvas.RectFill(
                     DrawX + cell.Rect.X,
                     DrawY + cell.Rect.Y,
                     cell.Rect.W,
@@ -144,16 +145,16 @@ namespace BLIT64_Editor
                 current_cell.Rect.H + 2*PanelBorderSize
             );
             
-            blitter.SetColor(current_cell.Color);
-            blitter.RectFill(
+            canvas.SetColor(current_cell.Color);
+            canvas.RectFill(
                 current_cell_rect.X, 
                 current_cell_rect.Y,
                 current_cell_rect.W,
                 current_cell_rect.H
             );
 
-            blitter.SetColor(Palette.WhiteColor);
-            blitter.Rect(
+            canvas.SetColor(32);
+            canvas.Rect(
                 current_cell_rect.X, 
                 current_cell_rect.Y,
                 current_cell_rect.W,
@@ -161,8 +162,8 @@ namespace BLIT64_Editor
                 PanelBorderSize
             );
 
-            blitter.SetColor(Palette.BlackColor);
-            blitter.RectFill(
+            canvas.SetColor(27);
+            canvas.RectFill(
                 x: current_cell_rect.X - PanelBorderSize, 
                 y: current_cell_rect.Y + current_cell_rect.H + PanelBorderSize, 
                 w: current_cell_rect.W + PanelBorderSize*2, 
@@ -171,8 +172,8 @@ namespace BLIT64_Editor
 
             var transparent_col_cell = _color_cells[0];
 
-            blitter.SetColor(Palette.WhiteColor);
-            blitter.Rect
+            canvas.SetColor(35);
+            canvas.Rect
             (
                 DrawX + transparent_col_cell.Rect.X + transparent_col_cell.Rect.W/2 - 2, 
                 DrawY + transparent_col_cell.Rect.Y + transparent_col_cell.Rect.H/2 - 2, 
@@ -181,10 +182,11 @@ namespace BLIT64_Editor
                 line_size: 1
             );
 
-            blitter.Clip();
-            blitter.EndDraw();
+            canvas.Clip();
 
-            DrawChildren(blitter, drawer);
+            DrawChildren(canvas, drawer);
+
+            Palette.SetColorGroup(ColorGroup.Group1);
         }
 
         private void BuildColorCells()

@@ -5,7 +5,7 @@ namespace BLIT64
 {
     internal class RenderSurface : GameAsset
     {
-        internal int Index{ get; private set;}
+        internal int Index{ get; }
 
         public int Width { get; }
 
@@ -13,17 +13,9 @@ namespace BLIT64
 
         public uint ByteCount { get; }
 
-        public int Pitch => Width * 4;
-
         private GCHandle _gc_handle;
         internal readonly IntPtr DataPtr;
-        private byte[] _data;
-
-        ~RenderSurface()
-        {
-            Console.WriteLine("RenderSurface Leak");
-            Dispose(false);
-        }
+        private readonly byte[] _data;
 
         internal RenderSurface(int index, int width, int height) : this(new byte[width * height * 4], width, height )
         {
@@ -42,19 +34,9 @@ namespace BLIT64
             DataPtr = Marshal.UnsafeAddrOfPinnedArrayElement(_data, 0);
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void FreeUnmanaged()
         {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    _data = null;
-                }
-
-                _gc_handle.Free();
-                GC.SuppressFinalize(this);
-                disposed = true;
-            }
+            _gc_handle.Free();
         }
     }
 }

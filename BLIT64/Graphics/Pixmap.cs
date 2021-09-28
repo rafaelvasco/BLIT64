@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+
 namespace BLIT64
 {
     public class Pixmap : GameAsset
@@ -7,14 +9,14 @@ namespace BLIT64
 
         public int Height { get; }
 
-        public byte[] Colors;
+        public int[] Colors;
 
         public Pixmap(int width, int height)
         {
             Width = width;
             Height = height;
 
-            Colors = new byte[width*height];
+            Colors = new int[width*height];
 
             for (int i = 0; i < Colors.Length; ++i)
             {
@@ -22,29 +24,27 @@ namespace BLIT64
             }
         }
 
-        public Pixmap(byte[] colors, int width, int height)
+        public Pixmap(IReadOnlyList<byte> image_data, int width, int height)
         {
             Width = width;
 
             Height = height;
 
-            var current_palette = Game.Instance.Canvas.BasePalette;
-
             var this_colors_index = 0;
 
-            Colors = new byte[width * height];
+            Colors = new int[width * height];
 
-            for (int i = 0; i < colors.Length; i+=4)
+            for (int i = 0; i < image_data.Count; i+=4)
             {
-                var cr = colors[i];
-                var cg = colors[i+1];
-                var cb = colors[i+2];
-                var matched_color_index = current_palette.MatchColor(cr, cg, cb);
-                Colors[this_colors_index++] = matched_color_index;
+                var cr = image_data[i];
+                var cg = image_data[i+1];
+                var cb = image_data[i+2];
+                var matched_color_code = Palette.MatchColor(cr, cg, cb);
+                Colors[this_colors_index++] = matched_color_code;
             }
         }
 
-        public byte GetColorAt(int x, int y)
+        public int GetColorAt(int x, int y)
         {
             var colors = this.Colors;
 
@@ -53,12 +53,9 @@ namespace BLIT64
             return colors[idx];
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void FreeManaged()
         {
-            if (disposing)
-            {
-                Colors = null;
-            }
+            Colors = null;
         }
     }
 }

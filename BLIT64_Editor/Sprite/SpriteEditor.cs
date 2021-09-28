@@ -7,16 +7,11 @@ namespace BLIT64_Editor
     public class SpriteEditor : Container
     {
         public static int TileSize { get; private set; }
-        
-        private SpriteSheet _sprite_sheet;
 
         private readonly Label _sprite_id_label;
         private readonly SpriteSheetEditor _sprite_sheet_editor;
-        private readonly SpriteSheetNavigator _sprite_sheet_navigator;
         private readonly ColorPicker _color_picker;
         private readonly SelectorSlider _brush_size_slider;
-        private readonly SelectorSlider _source_rect_size_mult_slider;
-        private readonly ToolSelector _tool_box;
 
         public SpriteEditor(string id, int width, int height) : base(id, width, height)
         {
@@ -24,7 +19,7 @@ namespace BLIT64_Editor
 
             var pixmap_surface_size = TileSize * AppLayout.Data.EditorPixmapSizeMultiplier;
 
-            _sprite_sheet = Assets.CreateSpriteSheet(pixmap_surface_size, pixmap_surface_size);
+            var sprite_sheet = Assets.CreateSpriteSheet(pixmap_surface_size, pixmap_surface_size);
 
             var horizontal_container = new Container("hor_container", width, height);
 
@@ -35,7 +30,7 @@ namespace BLIT64_Editor
             horizontal_container.Add(left_vertical_container);
             horizontal_container.Add(right_vertical_container);
 
-            _sprite_id_label = new Label("sprite_id_label", $"#000", 1);
+            _sprite_id_label = new Label("sprite_id_label", $"#000");
 
             var sprite_editor_size = TileSize * AppLayout.Data.EditorSizeMultiplier;
 
@@ -43,32 +38,32 @@ namespace BLIT64_Editor
                 new SpriteSheetEditor("sprite_sheet_editor", sprite_editor_size, sprite_editor_size);
 
 
-            _tool_box = new ToolSelector("tool_selector");
+            var tool_box = new ToolSelector("tool_selector");
             
             var spritesheet_navigator_size = TileSize * AppLayout.Data.NavigatorSizeMultiplier;
 
-            _sprite_sheet_navigator = new SpriteSheetNavigator("sprite_sheet_nav", spritesheet_navigator_size,
+            var sprite_sheet_navigator = new SpriteSheetNavigator("sprite_sheet_nav", spritesheet_navigator_size,
                 spritesheet_navigator_size, new Rect(0, 0, TileSize, TileSize));
 
             _color_picker = new ColorPicker("color_picker");
 
-            _source_rect_size_mult_slider = new SelectorSlider("source_rect_size_slider", AppLayout.Data.SelectorThumbSize, new[] {1, 2, 4, 8});
+            var source_rect_size_mult_slider = new SelectorSlider("source_rect_size_slider", AppLayout.Data.SelectorThumbSize, new[] {1, 2, 4, 8});
 
             _brush_size_slider =
                 new SelectorSlider("brush_size_slider", AppLayout.Data.SelectorThumbSize, new[] {1, 2, 4});
 
-            _sprite_sheet_editor.SetSpriteSheet(_sprite_sheet);
-            _sprite_sheet_navigator.SetSpriteSheet(_sprite_sheet);
+            _sprite_sheet_editor.SetSpriteSheet(sprite_sheet);
+            sprite_sheet_navigator.SetSpriteSheet(sprite_sheet);
             _sprite_sheet_editor.SetPaintColor(_color_picker.CurrentColor);
 
             left_vertical_container.Add(_brush_size_slider);
             left_vertical_container.Add(_sprite_id_label);
             left_vertical_container.Add(_sprite_sheet_editor);
-            left_vertical_container.Add(_tool_box);
+            left_vertical_container.Add(tool_box);
             left_vertical_container.Add(_color_picker);
 
-            right_vertical_container.Add(_source_rect_size_mult_slider);
-            right_vertical_container.Add(_sprite_sheet_navigator);
+            right_vertical_container.Add(source_rect_size_mult_slider);
+            right_vertical_container.Add(sprite_sheet_navigator);
 
             Add(horizontal_container);
 
@@ -78,12 +73,12 @@ namespace BLIT64_Editor
            
             TypedMessager<byte>.On(MessageCodes.ColorPicked, OnColorPick);
 
-            _source_rect_size_mult_slider.OnChange += (int value) =>
+            source_rect_size_mult_slider.OnChange += value =>
             {
                 TypedMessager<int>.Emit(MessageCodes.SpriteNavigatorCursorSizeChanged, value);
             };
 
-            _brush_size_slider.OnChange += (int value) =>
+            _brush_size_slider.OnChange += value =>
             {
                 TypedMessager<int>.Emit(MessageCodes.SpriteSheetEditorBrushSizeChanged, value);
             };

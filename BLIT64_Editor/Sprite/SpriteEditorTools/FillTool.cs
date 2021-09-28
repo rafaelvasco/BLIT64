@@ -23,7 +23,7 @@ namespace BLIT64_Editor
 
         public override void OnMouseDown(ToolActionParams @params)
         {
-            var blitter = @params.Blitter;
+            var canvas = @params.Canvas;
             var x = @params.PaintX;
             var y = @params.PaintY;
             var button = @params.MouseButton;
@@ -31,11 +31,11 @@ namespace BLIT64_Editor
             var sheet = @params.SpriteSheet;
             var source_rect = @params.SourceRect;
 
-            blitter.SetSurface(sheet);
-            blitter.Clip(source_rect.X, source_rect.Y, source_rect.W, source_rect.H);
-            blitter.FloodFill(x, y, button == MouseButton.Left ? paint_color : (byte)0);
-            blitter.Clip();
-            blitter.SetSurface(null);
+            canvas.SetTarget(sheet);
+            canvas.Clip(source_rect.X, source_rect.Y, source_rect.W, source_rect.H);
+            canvas.FloodFill(x, y, button == MouseButton.Left ? paint_color : (byte)0);
+            canvas.Clip();
+            canvas.SetTarget();
         }
 
         public override void OnMouseUp(ToolActionParams @params)

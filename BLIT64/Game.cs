@@ -5,7 +5,7 @@ namespace BLIT64
 {
     public sealed class Game : IDisposable
     {
-        public Canvas Canvas { get; private set; }
+        public Canvas Canvas { get; }
 
         private bool _running;
         private static Game _instance;
@@ -110,11 +110,7 @@ namespace BLIT64
                 CurrentScene = scene;
             }
 
-            Canvas.BeginDraw();
-
-            Canvas.EndDraw();
-
-            Canvas.Present();
+            Canvas.PresentToDisplay();
             
             Platform.ShowWindow(true);
 
@@ -155,13 +151,9 @@ namespace BLIT64
 
                 CurrentScene.Update();
 
-                Canvas.BeginDraw();
-
                 CurrentScene.Draw(Canvas);
 
-                Canvas.EndDraw();
-
-                Canvas.Present();
+                Canvas.PresentToDisplay();
 
                 var delay = next_tick - Platform.GetPerformanceCounter();
 

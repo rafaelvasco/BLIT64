@@ -61,33 +61,33 @@ namespace BLIT64_Editor
 
         private void PaintAt(ToolActionParams @params)
         {
-            var blitter = @params.Blitter;
+            var canvas = @params.Canvas;
             var sheet = @params.SpriteSheet;
             var x = Calc.SnapToInt(@params.PaintX, BrushSize);
             var y = Calc.SnapToInt(@params.PaintY, BrushSize);
             var button = @params.MouseButton;
             var paint_color = button == MouseButton.Left ? @params.PaintColor : (byte)0;
 
-            blitter.SetSurface(sheet);
-            blitter.Clip(@params.SourceRect);
+            canvas.SetTarget(sheet);
+            canvas.Clip(@params.SourceRect);
 
-            blitter.SetColor(paint_color);
+            canvas.SetColor(paint_color);
 
             if (_last_x != x || _last_y != y)
             {
                 if (x < @params.SourceRect.Right - 1 && y < @params.SourceRect.Bottom - 1)
                 {
-                    blitter.Line(_last_x, _last_y, x, y, BrushSize);
+                    canvas.Line(_last_x, _last_y, x, y, BrushSize);
                 }
             }
             else
             {
-                blitter.RectFill(x, y, _brush_size, _brush_size);
+                canvas.RectFill(x, y, _brush_size, _brush_size);
             }
 
             
-            blitter.Clip();
-            blitter.SetSurface(null);
+            canvas.Clip();
+            canvas.SetTarget();
         }
     }
 }

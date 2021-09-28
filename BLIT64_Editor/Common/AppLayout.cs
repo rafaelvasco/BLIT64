@@ -1,7 +1,7 @@
 ﻿
 using BLIT64_Common;
 
-namespace BLIT64_Editor
+namespace BLIT64_Editor.Common
 {
     public static class AppLayout
     {

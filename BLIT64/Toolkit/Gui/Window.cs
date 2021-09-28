@@ -53,11 +53,11 @@ namespace BLIT64.Toolkit.Gui
             Ui.SetVisible(this, false);
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
-            drawer.DrawWindow(blitter, this);
+            drawer.DrawWindow(canvas, this);
 
-            DrawChildren(blitter, drawer);
+            DrawChildren(canvas, drawer);
         }
     }
 }

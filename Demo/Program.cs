@@ -8,7 +8,7 @@ namespace Demo
         private static void Main()
         {
             using var game = new Game("BLIT64 Demo", 640, 360);
-            game.Run(new PrimitivesDrawing());
+            game.Run(new Scene3());
         }
     }
 }

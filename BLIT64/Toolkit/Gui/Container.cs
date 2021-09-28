@@ -14,7 +14,7 @@ namespace BLIT64.Toolkit.Gui
     {
         public List<Widget> Children { get; }
 
-        public byte DebugColor { get; set; } = 0;
+        public int DebugColor { get; set; } = 0;
 
         public Container(string id, int width, int height) : base(id, width, height)
         {
@@ -309,15 +309,15 @@ namespace BLIT64.Toolkit.Gui
             }
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
             if (DebugColor > 0)
             {
-                blitter.SetColor(DebugColor);
-                blitter.RectFill(DrawX, DrawY, Width, Height);
+                canvas.SetColor(DebugColor);
+                canvas.RectFill(DrawX, DrawY, Width, Height);
             }
 
-            DrawChildren(blitter, drawer);
+            DrawChildren(canvas, drawer);
         }
     }
 }

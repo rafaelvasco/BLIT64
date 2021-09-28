@@ -68,9 +68,9 @@ namespace BLIT64.Toolkit.Gui
             return tab_header;
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
-            DrawChildren(blitter, drawer);
+            DrawChildren(canvas, drawer);
         }
     }
 

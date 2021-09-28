@@ -1,10 +1,12 @@
 ﻿
+using System.Collections.Generic;
+
 namespace BLIT64
 {
     public class Font : SpriteSheet
     {
         internal Font(
-            byte[] image_data, 
+            IReadOnlyList<byte> image_data, 
             int image_width, 
             int image_height, 
             int glyph_size) : base(

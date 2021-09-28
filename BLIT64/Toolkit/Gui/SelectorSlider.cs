@@ -128,9 +128,9 @@ namespace BLIT64.Toolkit.Gui
             
         }
 
-        public override void Draw(Canvas blitter, IGuiDrawer drawer)
+        public override void Draw(Canvas canvas, IGuiDrawer drawer)
         {
-            drawer.DrawSelectorSlider(blitter, this);
+            drawer.DrawSelectorSlider(canvas, this);
         }
 
         private void UpdateIndexFromCursor(int x, int y)

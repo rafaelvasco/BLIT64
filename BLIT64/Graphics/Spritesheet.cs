@@ -55,7 +55,7 @@ namespace BLIT64
             Tiles = SpriteSheet.BuildTiles(width, height, cell_size);
         }
 
-        internal SpriteSheet(byte[] image_data, int width, int height, int cell_size) : base(image_data, width, height)
+        internal SpriteSheet(IReadOnlyList<byte> image_data, int width, int height, int cell_size) : base(image_data, width, height)
         {
             TileSize = cell_size;
             Tiles = SpriteSheet.BuildTiles(width, height, cell_size);

@@ -34,7 +34,7 @@ namespace BLIT64
 
             DisplayScaleFactorY = (float) display_height / surface_height;
 
-            SDL_SetRenderDrawBlendMode(_graphics_context, SDL_BlendMode.SDL_BLENDMODE_NONE);
+            _ = SDL_SetRenderDrawBlendMode(_graphics_context, SDL_BlendMode.SDL_BLENDMODE_NONE);
         }
 
         private static void UpdateDisplayScaleFactor()
